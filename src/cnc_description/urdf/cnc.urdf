@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This is the URDF model for the Self Built CNC Welding Mechanism for CNERC, HK PolyU.
+15 July 2021, by Victor W H Wu.
+-->
+<robot name="cncweld" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <link name="world" />
+
+<!--
+  There are 2 rails for the X axis. 
+  The one nearer to the operator is x1 link.
+  The one further away from the operator is x2 link.
+-->
+  <link
+    name="X_axis">
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/X_axis.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/X_axis.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="world_to_X_axis" type="fixed">
+    <parent link="world" />
+    <child link="X_axis" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  </joint>
+
+<!--
+  <link
+    name="x2_link">
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/x_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/x_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="world_to_2_link" type="fixed">
+    <parent link="world" />
+    <child link="x2_link" />
+    <origin xyz="0.0 0.287 0.0" rpy="0.0 0.0 0.0" />
+  </joint>
+-->
+
+  <link
+    name="Y_axis">
+    <visual>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/Y_axis_assy.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/Y_axis_assy.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="X_axis_Y_axis_joint"
+    type="prismatic">
+    <origin
+      xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <parent
+      link="X_axis" />
+    <child
+      link="Y_axis" />
+    <axis  xyz="1 0 0"/>
+    <limit effort="1000.0" lower="0.0" upper="1.0" velocity="0.05"/>
+  </joint>
+
+<!--
+  <link
+    name="y2_Link">
+    <visual>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/y_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/y_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="x2_y2_joint"
+    type="prismatic">
+    <origin
+      xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <parent
+      link="x2_link" />
+    <child
+      link="y2_Link" />
+    <limit effort="1000.0" lower="0.0" upper="1.0" velocity="0.05"/>
+  </joint>
+-->
+
+  <link
+    name="Z_axis">
+    <visual>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/Z_axis_assy.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/Z_axis_assy.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Y_axis_Z_axis_joint"
+    type="prismatic">
+    <origin
+      xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <parent
+      link="Y_axis" />
+    <child
+      link="Z_axis" />
+    <limit effort="1000.0" lower="0.0" upper="0.21" velocity="0.05"/>
+    <axis  xyz="0 1 0"/>
+  </joint>
+
+  <link
+    name="tool0">
+    <visual>
+      <origin
+        xyz="0.045 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/tool0.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.045 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/tool0.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Z_axis_tool0_joint"
+    type="prismatic">
+    <origin
+      xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <parent
+      link="Z_axis" />
+    <child
+      link="tool0" />
+    <limit effort="1000.0" lower="0.0" upper="0.2" velocity="0.05"/>
+    <axis  xyz="0 0 1"/>
+  </joint>
+
+</robot>
