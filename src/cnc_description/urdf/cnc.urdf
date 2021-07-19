@@ -4,6 +4,7 @@ This is the URDF model for the Self Built CNC Welding Mechanism for CNERC, HK Po
 15 July 2021, by Victor W H Wu.
 Updated on 18 July 2021 to have all X, Y, and Z axes.
 The Turn table is still needed to be put on and replace the tool0.
+Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding Torch, and Laser Scanner.
 -->
 <robot name="cncweld" xmlns:xacro="http://ros.org/wiki/xacro">
 
