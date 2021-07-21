@@ -1,38 +1,20 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="cnc" />
-    <param name="robot_description" textfile="$(find cnc_description)/urdf/cnc.urdf" />
-<<<<<<< HEAD
-<!--
-  Originaly, it uses the "joint_state_publisher_gui". However, it complains that there 
-  is no module yaml in the python (2.7). So, falled back to use the older version, that 
-  is the "joint_state_publisher". And use the parameter "use_gui"
-=======
-
->>>>>>> fd5487e9a84dd0e8d073958ef5e7e21718a52cf7
+  <param 
+    name="robot_description" 
+    textfile="$(find cnc_description)/urdf/cnc.urdf" />
   <node
     name="joint_state_publisher_gui"
     pkg="joint_state_publisher_gui"
     type="joint_state_publisher_gui" />
-<!--
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
-    <param name="use_gui" value="true"/>
-  </node>
-<<<<<<< HEAD
-
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
-=======
--->
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
-<!--
-  <node
-    name="robot_state_publisher"
-    pkg="robot_state_publisher"
+  <node 
+    name="robot_state_publisher" 
+    pkg="robot_state_publisher" 
     type="robot_state_publisher" />
-    <arg name="gui" default="True" />
-
-    <param name="use_gui" value="$(arg gui)" />
--->
->>>>>>> fd5487e9a84dd0e8d073958ef5e7e21718a52cf7
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cnc_description)/rviz/urdf.rviz" required="true" />
+  <node 
+    name="rviz" 
+    pkg="rviz" 
+    type="rviz" 
+    args="-d $(find cnc_description)/rviz/urdf.rviz" />
 </launch>
