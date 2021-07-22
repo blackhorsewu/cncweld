@@ -11,10 +11,10 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
   <link name="world" />
 
 <!--
-  There are 2 rails for the X axis. 
+  There are 2 rails for the X link. 
 -->
   <link
-    name="X_axis">
+    name="X_link">
     <visual>
       <origin
         xyz="0 0 0"
@@ -40,19 +40,19 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
     </collision>
   </link>
 <!--
-  The World to X axis Fixed Joint
+  The World to X link Fixed Joint
 -->
-  <joint name="world_to_X_axis" type="fixed">
+  <joint name="world_to_X_link" type="fixed">
     <parent link="world" />
-    <child link="X_axis" />
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <child link="X_link" />
+    <origin xyz="0.0 -0.1445 0.0" rpy="0.0 0.0 0.0" />
   </joint>
 
 <!--
-  The Y axis
+  The Y link
 -->
   <link
-    name="Y_axis">
+    name="Y_link">
     <visual>
       <origin
         xyz="0.0 0.0 0.0"
@@ -79,26 +79,26 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
   </link>
 
 <!--
-  The X axis to Y axis Prismatic Joint
+  The X link to Y link Prismatic Joint
 -->
   <joint
-    name="X_axis_Y_axis_joint"
+    name="X_link_Y_link_joint"
     type="prismatic">
     <origin
       xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
     <parent
-      link="X_axis" />
+      link="X_link" />
     <child
-      link="Y_axis" />
+      link="Y_link" />
     <axis  xyz="1 0 0"/>
     <limit effort="1000.0" lower="0.0" upper="0.7" velocity="0.05"/>
   </joint>
 
 <!--
-  The Z axis
+  The Z link
 -->
   <link
-    name="Z_axis">
+    name="Z_link">
     <visual>
       <origin
         xyz="0.0 0.0 0.0"
@@ -125,23 +125,23 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
   </link>
 
 <!--
-  The Y axis to Z axis Prismatic Joint
+  The Y link to Z link Prismatic Joint
 -->
   <joint
-    name="Y_axis_Z_axis_joint"
+    name="Y_link_Z_link_joint"
     type="prismatic">
     <origin
       xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
     <parent
-      link="Y_axis" />
+      link="Y_link" />
     <child
-      link="Z_axis" />
+      link="Z_link" />
     <limit effort="1000.0" lower="0.0" upper="0.21" velocity="0.05"/>
     <axis  xyz="0 1 0"/>
   </joint>
 
 <!--
-  The Slide link on the Z axis.
+  The Slide link on the Z link.
   Usually the last link is the tool0 and the End Effector will be
   fixed on it.
 -->
@@ -173,17 +173,17 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
   </link>
 
 <!--
-  The Z axis to tool0 Prismatic Joint
+  The Z link to tool0 Prismatic Joint
 -->
   <joint
-    name="Z_axis_tool0_joint"
+    name="Z_link_tool0_joint"
     type="prismatic">
 <!--
     <origin xyz="0.045 0.0 0.0" rpy="0.0 0.0 0.0" />
--->      
+-->
     <origin xyz="0.31 0.046 0.0" rpy="0.0 0.0 0.0" />
     <parent
-      link="Z_axis" />
+      link="Z_link" />
     <child
       link="tool0" />
     <limit effort="1000.0" lower="0.0" upper="0.086" velocity="0.05"/>
