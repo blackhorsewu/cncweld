@@ -85,17 +85,63 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
     name="base_link_X_link_joint"
     type="prismatic">
     <origin
-      xyz="0.05 0.0 0.083" rpy="0.0 0.0 0.0" />
+      xyz="0.0 0.0 0.083" rpy="0.0 0.0 0.0" />
     <parent
       link="base_link" />
     <child
       link="X_link" />
     <axis  xyz="1 0 0"/>
-    <limit effort="1000.0" lower="0.0" upper="1.0" velocity="0.05"/>
+    <limit effort="1000.0" lower="0.09" upper="0.75" velocity="0.05"/>
   </joint>
 
 <!--
-  The Z link
+  The Y link
+-->
+  <link
+    name="Y_link">
+    <visual>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/Y_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/Y_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+<!--
+  The X link to Y link Prismatic Joint
+-->
+  <joint
+    name="X_link_Y_link_joint"
+    type="prismatic">
+    <origin
+      xyz="0.08 -0.058 -0.041" rpy="0.0 0.0 0.0" />
+    <parent
+      link="X_link" />
+    <child
+      link="Y_link" />
+    <limit effort="1000.0" lower="0.0" upper="0.18" velocity="0.05"/>
+    <axis  xyz="0 1 0"/>
+  </joint>
+
+<!--
+  The Z link.
 -->
   <link
     name="Z_link">
@@ -105,7 +151,7 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/Z_axis_assy.STL" />
+          filename="package://cnc_description/meshes/Z_link.STL" />
       </geometry>
       <material
         name="">
@@ -119,41 +165,41 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/Z_axis_assy.STL" />
+          filename="package://cnc_description/meshes/Z_link.STL" />
       </geometry>
     </collision>
   </link>
 
 <!--
-  The X link to Z link Prismatic Joint
+  The Y link to Z_link Prismatic Joint
 -->
   <joint
-    name="X_link_Z_link_joint"
+    name="Y_link_Z_link_joint"
     type="prismatic">
-    <origin
-      xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+<!--
+    <origin xyz="0.045 0.0 0.0" rpy="0.0 0.0 0.0" />
+-->
+    <origin xyz="0.068 0.0 0.23" rpy="0.0 0.0 0.0" />
     <parent
-      link="X_link" />
+      link="Y_link" />
     <child
       link="Z_link" />
-    <limit effort="1000.0" lower="0.0" upper="0.21" velocity="0.05"/>
-    <axis  xyz="0 1 0"/>
+    <limit effort="1000.0" lower="-0.086" upper="0.0" velocity="0.05"/>
+    <axis  xyz="0 0 1"/>
   </joint>
 
 <!--
-  The Slide link on the Z link.
-  Usually the last link is the tool0 and the End Effector will be
-  fixed on it.
+  The torch.
 -->
   <link
-    name="tool0">
+    name="torch">
     <visual>
       <origin
         xyz="0.0 0.0 0.0"
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/tool0.STL" />
+          filename="package://cnc_description/meshes/torch.STL" />
       </geometry>
       <material
         name="">
@@ -167,27 +213,34 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/tool0.STL" />
+          filename="package://cnc_description/meshes/torch.STL" />
       </geometry>
     </collision>
   </link>
 
 <!--
-  The Z link to tool0 Prismatic Joint
+  The Z_link to Torch Revolute Joint
 -->
   <joint
-    name="Z_link_tool0_joint"
-    type="prismatic">
-<!--
-    <origin xyz="0.045 0.0 0.0" rpy="0.0 0.0 0.0" />
--->
-    <origin xyz="0.31 0.046 0.0" rpy="0.0 0.0 0.0" />
+    name="Z_link_torch_joint"
+    type="revolute">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
     <parent
       link="Z_link" />
     <child
-      link="tool0" />
-    <limit effort="1000.0" lower="0.0" upper="0.086" velocity="0.05"/>
-    <axis  xyz="0 0 1"/>
+      link="torch" />
+    <limit effort="1000.0" lower="-3.1416" upper="3.1416" velocity="0.05"/>
+  </joint>
+
+  <link name="torch_tip"/>
+  <joint
+    name="torch_to_tip"
+    type="fixed">
+    <origin xyz="0.08 0.0 -0.19" rpy="0.0 0.0 0.0" />
+    <parent
+      link="torch" />
+    <child
+      link="torch_tip" />
   </joint>
 
 </robot>
