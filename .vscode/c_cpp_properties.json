@@ -6,7 +6,9 @@
         "limitSymbolsToIncludedHeaders": true
       },
       "includePath": [
-        "/opt/ros/melodic/include/**",
+        "/home/victor/cncweld/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/victor/cncweld/src/realsense-ros/realsense2_camera/include/**",
         "/usr/include/**"
       ],
       "name": "ROS"
