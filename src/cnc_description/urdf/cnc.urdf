@@ -6,12 +6,16 @@ Updated on 18 July 2021 to have all X, Y, and Z axes.
 The Turn table is still needed to be put on and replace the tool0.
 Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding Torch, and Laser Scanner.
 -->
-<robot name="cncweld" xmlns:xacro="http://ros.org/wiki/xacro">
 
+
+<robot name="cncweld" xmlns:xacro="http://ros.org/wiki/xacro">
+<!--
   <link name="world" />
+-->
 
 <!--
-  There are 2 rails for the base link. 
+  There are 2 rails for the base link. The base_link.STL has already
+  included 2 trails in it.
 -->
   <link
     name="base_link">
@@ -39,17 +43,10 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
       </geometry>
     </collision>
   </link>
-<!--
-  The World to base link Fixed Joint
--->
-  <joint name="world_to_base_link" type="fixed">
-    <parent link="world" />
-    <child link="base_link" />
-    <origin xyz="0.044 0.0 0.02" rpy="0.0 0.0 0.0" />
-  </joint>
 
 <!--
-  The X link
+  The X link - this is the link that cross the 2 rails and moves in the X
+  direction.
 -->
   <link
     name="X_link">
@@ -95,7 +92,7 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
   </joint>
 
 <!--
-  The Y link
+  The Y link - the vertical link/rail that moves in the Y direction
 -->
   <link
     name="Y_link">
@@ -141,10 +138,10 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
   </joint>
 
 <!--
-  The Z link.
+  The Z link - the slide, together with the turn table attached to it, that 
+  moves vertically along the rail provided by the Y link.
 -->
-  <link
-    name="Z_link">
+  <link name="Z_link">
     <visual>
       <origin
         xyz="0.0 0.0 0.0"
@@ -188,59 +185,18 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
     <axis  xyz="0 0 1"/>
   </joint>
 
-<!--
-  The torch.
--->
-  <link
-    name="torch">
-    <visual>
-      <origin
-        xyz="0.0 0.0 0.0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://cnc_description/meshes/torch.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0.0 0.0 0.0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://cnc_description/meshes/torch.STL" />
-      </geometry>
-    </collision>
-  </link>
+<link name="tool0" />
 
 <!--
-  The Z_link to Torch Revolute Joint
+  The Z_link to tool0 Revolute Joint
 -->
-  <joint
-    name="Z_link_torch_joint"
-    type="revolute">
+  <joint name="Z_link_tool0" type="revolute">
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
     <parent
       link="Z_link" />
     <child
-      link="torch" />
+      link="tool0" />
     <limit effort="1000.0" lower="-3.1416" upper="3.1416" velocity="0.05"/>
-  </joint>
-
-  <link name="torch_tip"/>
-  <joint
-    name="torch_to_tip"
-    type="fixed">
-    <origin xyz="0.08 0.0 -0.19" rpy="0.0 0.0 0.0" />
-    <parent
-      link="torch" />
-    <child
-      link="torch_tip" />
   </joint>
 
 </robot>

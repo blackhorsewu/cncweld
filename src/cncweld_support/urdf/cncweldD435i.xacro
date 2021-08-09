@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro"
+       name="cncweld" >
+
+  <!-- Do not know how to do the hardware interface with urdf yet!
+  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
+  -->
+
+<!-- There are:-
+     1. The World, everything lives in it.
+     2. The CNC mechanism in it.
+     3. The Fronius Straight Welding Torch on a 3D printed holder.
+     4. The Intel RealSense D435i RGBD camera on a 3D printed holder.
+-->
+
+  <!-- (1) The World link -->
+  <link name="world" />
+
+  <!-- (2) The CNC mechanism -->
+  <!-- With this structure of the xacro file, the cnc.urdf should only have 
+       the CNC mechanism together with the turn table only. The Welding
+       Torch is separately described.
+  -->
+  
+  <xacro:include filename="$(find cnc_description)/urdf/cnc.urdf" />
+
+  <!-- arm Do not know how to handle this yet.
+  <xacro:arg name="kinematics_config" default="$(find ur_description)/config/ur5_default.yaml"/>
+  <xacro:ur5_robot prefix="" joint_limited="true"
+    transmission_hw_interface="$(arg transmission_hw_interface)"
+    kinematics_file="${load_yaml('$(arg kinematics_config)')}"
+  />
+  -->
+
+<!--
+  The World to base link of the CNC mechanism Fixed Joint
+-->
+  <joint name="world_to_base_link" type="fixed">
+    <parent link="world" />
+    <child link="base_link" />
+    <origin xyz="0.044 0.0 0.02" rpy="0.0 0.0 0.0" />
+  </joint>
+
+  <!-- defining tools -->
+
+  <!-- (3) The Fronius Straight Welding Torch on a 3D printed holder -->
+
+  <link name="torch">
+    <visual>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/mere_torch.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/mere_torch.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="tool0_to_Torch" type="fixed">
+    <origin xyz="0.08 0.0 -0.19" rpy="0.0 0.0 0.0" />
+    <parent link="tool0" />
+    <child  link="torch" />
+    <limit effort="1000.0" lower="-3.1416" upper="3.1416" velocity="0.05"/>
+  </joint>
+
+<!-- (4) The Intel RealSense D435i RGBD camera on a 3D printed holder -->
+
+  <!-- Import the realsense D435i description -->
+
+<!--
+  <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+  <xacro:sensor_d435 parent="ee_link" use_nominal_extrinsics="true" name="d435i">
+    <origin xyz=" 0.18515 0 0.00225" rpy="${pi} ${pi} ${pi}"/>
+  </xacro:sensor_d435>
+
+
+
+  <joint name="world_to_table" type="fixed">
+    <parent link="world"/>
+    <child link="table"/>
+    <origin xyz="0.6 0.0 0.0" rpy="0 0 0"/>
+  </joint>
+-->
+
+</robot>
