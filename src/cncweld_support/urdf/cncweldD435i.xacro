@@ -2,6 +2,17 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro"
        name="cncweld" >
 
+<!--
+  This is the URDF model for the Self Built CNC Welding Mechanism for CNERC, HK PolyU.
+  9 August 2021, by Victor W H Wu.
+
+  This .xacro file uses the Fronius Straight Torch as the End Effector, and the Intel
+  D435i RGBD Camera as the sensor.
+
+  Use the D435i rather than the D415 is because of the MinZ is smaller and more suitable
+  for this project.
+-->
+
   <!-- Do not know how to do the hardware interface with urdf yet!
   <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
   -->
@@ -72,29 +83,58 @@
   </link>
 
   <joint name="tool0_to_Torch" type="fixed">
-    <origin xyz="0.08 0.0 -0.19" rpy="0.0 0.0 0.0" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
     <parent link="tool0" />
     <child  link="torch" />
-    <limit effort="1000.0" lower="-3.1416" upper="3.1416" velocity="0.05"/>
+  </joint>
+
+  <link name="TorchTip" />
+
+  <joint name="Torch_to_TorchTip" type="fixed">
+    <origin xyz="0.08 0.0 -0.19" rpy="0.0 0.0 0.0" />
+    <parent link="torch" />
+    <child  link="TorchTip" />
   </joint>
 
 <!-- (4) The Intel RealSense D435i RGBD camera on a 3D printed holder -->
 
+  <link name="CamHolder">
+    <visual>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/mereCamHolder.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/mereCamHolder.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="tool0_to_CamHolder" type="fixed">
+    <origin xyz="-0.027 0.005 0.002" rpy="0.0 0.0 0.0" />
+    <parent link="tool0" />
+    <child  link="CamHolder" />
+  </joint>
+
   <!-- Import the realsense D435i description -->
 
-<!--
   <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
-  <xacro:sensor_d435 parent="ee_link" use_nominal_extrinsics="true" name="d435i">
-    <origin xyz=" 0.18515 0 0.00225" rpy="${pi} ${pi} ${pi}"/>
+  <xacro:sensor_d435 parent="tool0" use_nominal_extrinsics="true" name="d435i">
+    <origin xyz=" 0.14515 0 0.0" rpy="${pi} ${pi/2} ${pi}"/>
   </xacro:sensor_d435>
-
-
-
-  <joint name="world_to_table" type="fixed">
-    <parent link="world"/>
-    <child link="table"/>
-    <origin xyz="0.6 0.0 0.0" rpy="0 0 0"/>
-  </joint>
--->
 
 </robot>
