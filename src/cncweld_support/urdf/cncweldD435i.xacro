@@ -82,6 +82,9 @@
     </collision>
   </link>
 
+<!-- tool0 is the end of the CNC mechanism, Torch is the base of the 
+     base of the torch holder
+-->
   <joint name="tool0_to_Torch" type="fixed">
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
     <parent link="tool0" />

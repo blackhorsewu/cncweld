@@ -1,18 +1,19 @@
 {
-  "configurations": [
-    {
-      "browse": {
-        "databaseFilename": "",
-        "limitSymbolsToIncludedHeaders": true
-      },
-      "includePath": [
-        "/home/victor/cncweld/devel/include/**",
-        "/opt/ros/noetic/include/**",
-        "/home/victor/cncweld/src/realsense-ros/realsense2_camera/include/**",
-        "/usr/include/**"
-      ],
-      "name": "ROS"
-    }
-  ],
-  "version": 4
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/victor/cncweld/devel/include/**",
+                "/opt/ros/noetic/include/**",
+                "/home/victor/cncweld/src/realsense-ros/realsense2_camera/include/**",
+                "/usr/include/**",
+                "/opt/ros/noetic/include"
+            ],
+            "name": "ROS"
+        }
+    ],
+    "version": 4
 }

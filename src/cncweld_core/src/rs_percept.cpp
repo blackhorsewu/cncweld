@@ -9,9 +9,9 @@
  *                                  Robotic Welding                               *
  *                                                                                *
  * Victor W H Wu                                                                  *
- * 1 January 2021.                                                                *
+ * 11 August 2021.                                                                *
  *                                                                                *
- * RS Percept node for the Realsense camera to locating and identifying welding   *
+ * RS Percept node for the Realsense camera to locate and identify welding        *
  * groove in ROS.                                                                 *
  *                                                                                *
  **********************************************************************************/
@@ -20,10 +20,16 @@
  *                                                                                *
  * This node assumes that the Realsense2 camera package has already been          *
  * running so that it publishes the images and point clouds for use.              *
- * It also assumes the robot arm and the RViz are running with the tf for the     *
- * camera frames are readily available.                                           *
+ * It is imperative that the Point Clouds published are ORGANIZED. This can be    *
+ * achieved by the command:                                                       *
+ * $ roslaunch realsense2_camera rs_rgbd.launch camera:=d435i                     *
+ * where the rs_rgbd.launch is a launch file for the rs_rgbd nodelet and needs to *
+ * be installed separately.                                                       *
+ * It also assumes the robot, in this case is the CNC mechanism, and the RViz are *
+ * running with the tf for the camera frames are readily available.               *
  *                                                                                *
- * It subscribes to point clouds from the Realsense D435i camera.                 *
+ * It subscribes to point clouds, topic /d435i/depth_registered/points,from the   *
+ * Realsense D435i camera. This is the ORGANIZED point cloud.                     *
  *                                                                                *
  **********************************************************************************/
 
@@ -71,6 +77,8 @@
 
 #include <string>
 
+#include <time.h>
+
 using namespace std;
 
 
@@ -98,14 +106,14 @@ int main(int argc, char *argv[])
    */
   std::string cloud_topic, world_frame, camera_frame;
 
-  cloud_topic = priv_nh_.param<std::string>("cloud_topic", "d435i/depth/color/points");
+  cloud_topic = priv_nh_.param<std::string>("cloud_topic", "d435i/depth_registered/points");
   world_frame = priv_nh_.param<std::string>("world_frame", "world");
-  camera_frame = priv_nh_.param<std::string>("camera_frame", "d435i_depth_optical_frame");
+  camera_frame = priv_nh_.param<std::string>("camera_frame", "d435i_link");
 
   /*
    * we need to specify how much we want to see, ie how to crop the image in the camera 
    * frame. That is before transforming it to the World frame.
-   */
+   *
   float x_filter_min, x_filter_max, y_filter_min, y_filter_max, 
         z_filter_min, z_filter_max;
 
@@ -116,18 +124,23 @@ int main(int argc, char *argv[])
   z_filter_min = priv_nh_.param<float>("z_filter_min",  0.0);
   z_filter_max = priv_nh_.param<float>("z_filter_max",  0.25);
 
-  // local types
-  typedef pcl::PointCloud<pcl::PointXYZ> Cloud;
+ We do not need to crop the image for the time being.
 
-/*
+*/
+
+  // local types
+  typedef pcl::PointCloud<pcl::PointXYZRGB> Cloud;
+
+  /*
    * Setup publisher to publish ROS point clouds to RViz
    */
-  ros::Publisher object_pub;
-  object_pub = nh.advertise<sensor_msgs::PointCloud2>("object", 1);
+  ros::Publisher organised_pub;
+  organised_pub = nh.advertise<sensor_msgs::PointCloud2>("organised", 1);
 
  Cloud::Ptr transformed_pcl_cloud (new Cloud);
  transformed_pcl_cloud->header.frame_id = world_frame;
- // transformed_pcl_cloud->header.stamp=ros::Time::now();
+ pcl_conversions::toPCL(ros::Time::now(), transformed_pcl_cloud->header.stamp);
+ //transformed_pcl_cloud->header.stamp=ros::Time::now();
  sensor_msgs::PointCloud2::Ptr transformed_ros_cloud (new sensor_msgs::PointCloud2);
  transformed_ros_cloud->header.frame_id =  world_frame;
 
@@ -150,12 +163,12 @@ int main(int argc, char *argv[])
    /*
     * Convert Point Cloud from ROS format to PCL format
     */
-   pcl::PointCloud<pcl::PointXYZ> cloud;
+   pcl::PointCloud<pcl::PointXYZRGB> cloud;
 
    // Now, cloud is the original cloud in pcl format.
 
-   pcl::PointCloud<pcl::PointXYZ>::Ptr 
-                        cloud_ptr(new pcl::PointCloud<pcl::PointXYZ> (cloud));
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr 
+                        cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB> (cloud));
 
    pcl::fromROSMsg(*recent_cloud, *cloud_ptr);
 
@@ -173,7 +186,7 @@ int main(int argc, char *argv[])
    *  The z direction is pointing forward of the camera                            *
    *                                                                               *
    *********************************************************************************/
-
+/*
     //filter in x
     pcl::PointCloud<pcl::PointXYZ> xf_cloud, yf_cloud, zf_cloud;
     pcl::PassThrough<pcl::PointXYZ> pass_x;
@@ -205,12 +218,13 @@ int main(int argc, char *argv[])
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr croped_cloud_ptr 
                               (new pcl::PointCloud<pcl::PointXYZ> (zf_cloud));
+*/
 
     // croped_cloud_ptr points to a pcl cloud
     // Needs to convert to ROS format before publishing
     sensor_msgs::PointCloud2::Ptr ros_cloud (new sensor_msgs::PointCloud2);
   
-    pcl::toROSMsg(*croped_cloud_ptr, *ros_cloud);
+    pcl::toROSMsg(*cloud_ptr, *ros_cloud);
 
    /*
     * After cropping the cloud, now we want to 
@@ -224,7 +238,7 @@ int main(int argc, char *argv[])
      listener.waitForTransform(world_frame,
                                camera_frame,
                                ros::Time::now(),
-                               ros::Duration(0.2));
+                               ros::Duration(0.3));
      listener.lookupTransform (world_frame,
                                camera_frame,
                                ros::Time(0),
@@ -244,11 +258,11 @@ int main(int argc, char *argv[])
 
    pcl::fromROSMsg(*transformed_ros_cloud_local, *transformed_pcl_cloud_local);
 
-   *transformed_pcl_cloud += *transformed_pcl_cloud_local;
+   *transformed_pcl_cloud = *transformed_pcl_cloud_local;
 
    pcl::toROSMsg(*transformed_pcl_cloud, *transformed_ros_cloud);
 
-    object_pub.publish(*transformed_ros_cloud);
+   organised_pub.publish(*transformed_ros_cloud);
 
   } // End of Infinite loop
 

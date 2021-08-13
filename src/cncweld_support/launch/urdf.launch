@@ -1,10 +1,25 @@
 <launch>
   <arg name="gui" default="true"/>
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find cncweld_support)/urdf/cncweldD435i.xacro'" />
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="use_gui" value="$(arg gui)"/>
-  </node>
+  <param 
+    name="robot_description" 
+    command="$(find xacro)/xacro --inorder '$(find cncweld_support)/urdf/cncweldD435i.xacro'" />
+
+<!-- We do not have a robot connected, so publish fake joint states -->
+  <node
+    name="joint_state_publisher_gui"
+    pkg="joint_state_publisher_gui"
+    type="joint_state_publisher_gui" />
+
+<!--
+  <node 
+    name="robot_state_publisher" 
+    pkg="robot_state_publisher" 
+    type="robot_state_publisher" />
+-->
+
+<!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
   <node 
     name="rviz" 
     pkg="rviz" 
