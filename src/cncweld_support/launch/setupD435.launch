@@ -1,0 +1,64 @@
+<launch>
+<!-- cncweldD435i.xacro is the description of the cnc with the torch and the D435i camera -->
+  <param 
+    name="robot_description" 
+    command="$(find xacro)/xacro --inorder '$(find cncweld_support)/urdf/cncweldD435i.xacro'" />
+
+<!-- We do not have a robot connected, so publish fake joint states -->
+  <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
+
+<!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+<!-- Before the Edge Detector can be launched, the RealSense D435i Camera needs to be launched first -->
+  <include file="$(find realsense2_camera)/launch/rs_rgbd.launch">
+    <arg name="camera" value="d435i" />
+  </include>
+
+<!-- Invoke the Jsp Organized Edge Detector. Here Organized meaning the point cloud is organized. -->
+
+<!-- Because the detector is a nodelet, so it is necessary to start the nodelet manager first -->
+  <node name="sample_manager"
+    pkg="nodelet" type="nodelet"
+    args="manager" />
+
+<!-- Then start the edge detector proper -->
+  <node name="organized_edge_detector"
+      pkg="nodelet" type="nodelet"
+      args="load jsk_pcl/OrganizedEdgeDetector sample_manager">
+    <remap from="~input" to="/d435i/depth_registered/points"/>
+    <rosparam>
+      publish_normal: true
+      use_nan_boundary: true
+      use_rgb: true
+      use_straightline_detection: true
+    </rosparam>
+  </node>
+
+<!-- Estimate the normals of the detected edge -->
+  <node name="normal_estimation"
+        pkg="nodelet" type="nodelet"
+        args="load jsk_pcl/NormalEstimationOMP sample_manager">
+    <remap from="~input" to="organized_edge_detector/output_rgb_edge"/>
+    <rosparam>
+      radius_search: 0
+      k_search: 10
+      spatial_locator: 2
+    </rosparam>
+  </node>
+
+<!-- Put the edge and the normals together before showing them -->
+  <node name="normal_concatenater"
+        pkg="nodelet" type="nodelet"
+        args="load jsk_pcl_utils/NormalConcatenater sample_manager">
+    <remap from="~input" to="organized_edge_detector/output_rgb_edge"/>
+    <remap from="~normal" to="normal_estimation/output"/>
+  </node>
+
+  <node 
+    name="rviz" 
+    pkg="rviz" 
+    type="rviz" 
+    args="-d $(find cncweld_support)/rviz/cncweld_support.rviz"
+  />
+</launch>

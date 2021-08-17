@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
    */
   std::string cloud_topic, world_frame, camera_frame;
 
-  cloud_topic = priv_nh_.param<std::string>("cloud_topic", "/organized_edge_detector/output_rgb_edge/");
+  cloud_topic = priv_nh_.param<std::string>("cloud_topic", "organized_edge_detector/output_rgb_edge");
   world_frame = priv_nh_.param<std::string>("world_frame", "world");
   camera_frame = priv_nh_.param<std::string>("camera_frame", "d435i_link");
 

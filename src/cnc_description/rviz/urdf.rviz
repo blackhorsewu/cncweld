@@ -4,11 +4,12 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /Status1
         - /RobotModel1
+        - /RobotModel1/Status1
         - /RobotModel1/Links1
         - /RobotModel1/Links1/X_link1
-        - /RobotModel1/Links1/world1
         - /TF1
         - /TF1/Frames1
         - /PointCloud21
@@ -88,18 +89,9 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        torch:
+        tool0:
           Alpha: 1
           Show Axes: false
-          Show Trail: false
-          Value: true
-        torch_tip:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        world:
-          Alpha: 1
-          Show Axes: true
           Show Trail: false
       Name: RobotModel
       Robot Description: robot_description
@@ -120,11 +112,7 @@ Visualization Manager:
           Value: true
         base_link:
           Value: true
-        torch:
-          Value: true
-        torch_tip:
-          Value: true
-        world:
+        tool0:
           Value: true
       Marker Alpha: 1
       Marker Scale: 0.30000001192092896
@@ -133,14 +121,12 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          base_link:
-            X_link:
-              Y_link:
-                Z_link:
-                  torch:
-                    torch_tip:
-                      {}
+        base_link:
+          X_link:
+            Y_link:
+              Z_link:
+                tool0:
+                  {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -175,7 +161,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: world
+    Fixed Frame: base_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -207,17 +193,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.5480429530143738
-        Y: 0.09793468564748764
-        Z: 0.09151287376880646
+        X: 0.522728681564331
+        Y: 0.057674575597047806
+        Z: 0.0489974282681942
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4697982668876648
+      Pitch: 0.2297983467578888
       Target Frame: base_link
-      Yaw: 4.9084296226501465
+      Yaw: 5.3784403800964355
     Saved:
       - Class: rviz/Orbit
         Distance: 1.2575963735580444
