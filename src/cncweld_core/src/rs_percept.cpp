@@ -81,7 +81,97 @@
 
 using namespace std;
 
+std::string cloud_topic, world_frame;
+ros::Publisher organised_pub;
 
+void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
+{  //recent_cloud is the raw ROS point cloud received from the camera
+
+  /*
+   * Convert Point Cloud from ROS format to PCL format
+   */
+  pcl::PointCloud<pcl::PointXYZRGB> cloud; // Be careful this is SMALL cloud
+
+  // local types
+  typedef pcl::PointCloud<pcl::PointXYZRGB> Cloud; // Be careful this is CAPITAL Cloud
+
+  // Now, cloud is the original cloud in pcl format.
+
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr 
+                       cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB> (cloud));
+
+  pcl::fromROSMsg(*recent_cloud, *cloud_ptr);
+
+  Cloud::Ptr transformed_pcl_cloud (new Cloud);
+  transformed_pcl_cloud->header.frame_id = world_frame;
+  pcl_conversions::toPCL(ros::Time::now(), transformed_pcl_cloud->header.stamp);
+  sensor_msgs::PointCloud2::Ptr transformed_ros_cloud (new sensor_msgs::PointCloud2);
+  transformed_ros_cloud->header.frame_id =  world_frame;
+
+  // from here on we are dealing with PCL point cloud
+
+  /*********************************************************************************
+   *                                                                               *
+   *  PASSTHROUGH FILTER(S)                                                        *
+   *                                                                               *
+   *  Concentrate on the working area. Crop the image to focus on our intereset,   *
+   *  that is the welding groove.                                                  *
+   *  We are trying to crop the image from the perspective of the camera.          *
+   *  The x direction is pointing to the right of the camera                       *
+   *  The y direction is pointing downward of the camera                           *
+   *  The z direction is pointing forward of the camera                            *
+   *                                                                               *
+   *********************************************************************************/
+/*
+  //filter in x
+  pcl::PointCloud<pcl::PointXYZ> xf_cloud, yf_cloud, zf_cloud;
+  pcl::PassThrough<pcl::PointXYZ> pass_x;
+
+  pass_x.setInputCloud(cloud_ptr);
+  pass_x.setFilterFieldName("x");
+  pass_x.setFilterLimits(x_filter_min, x_filter_max);
+  pass_x.filter(xf_cloud);
+
+  //filter in y
+  pcl::PointCloud<pcl::PointXYZ>::Ptr xf_cloud_ptr
+                              (new pcl::PointCloud<pcl::PointXYZ>(xf_cloud));
+  pcl::PassThrough<pcl::PointXYZ> pass_y;
+
+  pass_y.setInputCloud(xf_cloud_ptr);
+  pass_y.setFilterFieldName("y");
+  pass_y.setFilterLimits(y_filter_min, y_filter_max);
+  pass_y.filter(yf_cloud);
+
+  //filter in z 
+  pcl::PointCloud<pcl::PointXYZ>::Ptr yf_cloud_ptr
+                              (new pcl::PointCloud<pcl::PointXYZ>(yf_cloud));
+  pcl::PassThrough<pcl::PointXYZ> pass_z;
+
+  pass_z.setInputCloud(yf_cloud_ptr);
+  pass_z.setFilterFieldName("z");
+  pass_z.setFilterLimits(z_filter_min, z_filter_max);
+  pass_z.filter(zf_cloud);
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr croped_cloud_ptr 
+                            (new pcl::PointCloud<pcl::PointXYZ> (zf_cloud));
+*/
+
+  // croped_cloud_ptr points to a pcl cloud
+  // Needs to convert to ROS format before publishing
+
+  /*
+   * cloud is now cropped.
+   */
+
+  sensor_msgs::PointCloud2::Ptr transformed_ros_cloud_local (new sensor_msgs::PointCloud2);
+  Cloud::Ptr transformed_pcl_cloud_local (new Cloud);
+
+  *transformed_pcl_cloud = *cloud_ptr;
+
+  pcl::toROSMsg(*cloud_ptr, *transformed_ros_cloud);
+
+  organised_pub.publish(*transformed_ros_cloud);
+}
 /**********************************************************************************
  *                                                                                *
  * The Main of this package starts here.                                          *
@@ -104,11 +194,11 @@ int main(int argc, char *argv[])
   /*
    * Parameters for the cloud topic and the reference frames
    */
-  std::string cloud_topic, world_frame, camera_frame;
-
   cloud_topic = priv_nh_.param<std::string>("cloud_topic", "organized_edge_detector/output_rgb_edge");
   world_frame = priv_nh_.param<std::string>("world_frame", "world");
-  camera_frame = priv_nh_.param<std::string>("camera_frame", "d435i_link");
+  // We should not use the camera frame but what is reported by the point cloud in the
+  // header.frame_id instead. camera_frame;
+  // camera_frame = priv_nh_.param<std::string>("camera_frame", "d435i_link");
 
   /*
    * we need to specify how much we want to see, ie how to crop the image in the camera 
@@ -128,143 +218,31 @@ int main(int argc, char *argv[])
 
 */
 
-  // local types
-  typedef pcl::PointCloud<pcl::PointXYZRGB> Cloud;
-
   /*
    * Setup publisher to publish ROS point clouds to RViz
    */
-  ros::Publisher organised_pub;
   organised_pub = nh.advertise<sensor_msgs::PointCloud2>("organised", 1);
 
- Cloud::Ptr transformed_pcl_cloud (new Cloud);
- transformed_pcl_cloud->header.frame_id = world_frame;
- pcl_conversions::toPCL(ros::Time::now(), transformed_pcl_cloud->header.stamp);
- //transformed_pcl_cloud->header.stamp=ros::Time::now();
- sensor_msgs::PointCloud2::Ptr transformed_ros_cloud (new sensor_msgs::PointCloud2);
- transformed_ros_cloud->header.frame_id =  world_frame;
 
+  /*
+   * Listen for Point Cloud - Detected Edges point cloud
+   */
 
+  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(cloud_topic, 1, callback);
+
+  ros::spin();
+
+/*
  while (ros::ok())
  { // Begin of infinite loop
 
-   /*
+   /**
     * Listen for point cloud
-    */
+    *
    std::string topic = nh.resolveName(cloud_topic);
    // ROS_INFO_STREAM("Cloud service called; waiting for a PointCloud2 on topic "<< topic);
-
-   /*
-    * recent_cloud is the raw ROS point cloud received from the camera
-    */
-   sensor_msgs::PointCloud2::ConstPtr recent_cloud =
-                ros::topic::waitForMessage<sensor_msgs::PointCloud2>(topic, nh);
-
-   /*
-    * Convert Point Cloud from ROS format to PCL format
-    */
-   pcl::PointCloud<pcl::PointXYZRGB> cloud;
-
-   // Now, cloud is the original cloud in pcl format.
-
-   pcl::PointCloud<pcl::PointXYZRGB>::Ptr 
-                        cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB> (cloud));
-
-   pcl::fromROSMsg(*recent_cloud, *cloud_ptr);
-
-   // from here on we are dealing with PCL point cloud
-
-  /*********************************************************************************
-   *                                                                               *
-   *  PASSTHROUGH FILTER(S)                                                        *
-   *                                                                               *
-   *  Concentrate on the working area. Crop the image to focus on our intereset,   *
-   *  that is the welding groove.                                                  *
-   *  We are trying to crop the image from the perspective of the camera.          *
-   *  The x direction is pointing to the right of the camera                       *
-   *  The y direction is pointing downward of the camera                           *
-   *  The z direction is pointing forward of the camera                            *
-   *                                                                               *
-   *********************************************************************************/
-/*
-    //filter in x
-    pcl::PointCloud<pcl::PointXYZ> xf_cloud, yf_cloud, zf_cloud;
-    pcl::PassThrough<pcl::PointXYZ> pass_x;
-
-    pass_x.setInputCloud(cloud_ptr);
-    pass_x.setFilterFieldName("x");
-    pass_x.setFilterLimits(x_filter_min, x_filter_max);
-    pass_x.filter(xf_cloud);
-
-    //filter in y
-    pcl::PointCloud<pcl::PointXYZ>::Ptr xf_cloud_ptr
-                               (new pcl::PointCloud<pcl::PointXYZ>(xf_cloud));
-    pcl::PassThrough<pcl::PointXYZ> pass_y;
-
-    pass_y.setInputCloud(xf_cloud_ptr);
-    pass_y.setFilterFieldName("y");
-    pass_y.setFilterLimits(y_filter_min, y_filter_max);
-    pass_y.filter(yf_cloud);
-
-    //filter in z 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr yf_cloud_ptr
-                               (new pcl::PointCloud<pcl::PointXYZ>(yf_cloud));
-    pcl::PassThrough<pcl::PointXYZ> pass_z;
-
-    pass_z.setInputCloud(yf_cloud_ptr);
-    pass_z.setFilterFieldName("z");
-    pass_z.setFilterLimits(z_filter_min, z_filter_max);
-    pass_z.filter(zf_cloud);
-
-    pcl::PointCloud<pcl::PointXYZ>::Ptr croped_cloud_ptr 
-                              (new pcl::PointCloud<pcl::PointXYZ> (zf_cloud));
-*/
-
-    // croped_cloud_ptr points to a pcl cloud
-    // Needs to convert to ROS format before publishing
-    sensor_msgs::PointCloud2::Ptr ros_cloud (new sensor_msgs::PointCloud2);
-  
-    pcl::toROSMsg(*cloud_ptr, *ros_cloud);
-
-   /*
-    * After cropping the cloud, now we want to 
-    * Transform PointCloud from Camera Frame to World Frame
-    */
-    
-   tf::TransformListener listener;
-   tf::StampedTransform  stransform;
-   try
-   {
-     listener.waitForTransform(world_frame,
-                               camera_frame,
-                               ros::Time::now(),
-                               ros::Duration(0.3));
-     listener.lookupTransform (world_frame,
-                               camera_frame,
-                               ros::Time(0),
-                               stransform);
-   }
-   catch (tf::TransformException ex)
-   {
-     ROS_ERROR("%s",ex.what());
-   }
-   sensor_msgs::PointCloud2::Ptr transformed_ros_cloud_local (new sensor_msgs::PointCloud2);
-   Cloud::Ptr transformed_pcl_cloud_local (new Cloud);
-
-   pcl_ros::transformPointCloud(world_frame,
-                                stransform,
-                                *ros_cloud,
-                                *transformed_ros_cloud_local);
-
-   pcl::fromROSMsg(*transformed_ros_cloud_local, *transformed_pcl_cloud_local);
-
-   *transformed_pcl_cloud = *transformed_pcl_cloud_local;
-
-   pcl::toROSMsg(*transformed_pcl_cloud, *transformed_ros_cloud);
-
-   organised_pub.publish(*transformed_ros_cloud);
-
   } // End of Infinite loop
+*/
 
   return 0;
 } // End of Main
