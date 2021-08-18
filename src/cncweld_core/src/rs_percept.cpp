@@ -84,6 +84,13 @@ using namespace std;
 std::string cloud_topic, world_frame;
 ros::Publisher organised_pub;
 
+float x_filter_min, x_filter_max,
+      y_filter_min, y_filter_max, 
+      z_filter_min, z_filter_max;
+
+/*
+ * The Callback function to process the listened point cloud
+*/
 void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
 {  //recent_cloud is the raw ROS point cloud received from the camera
 
@@ -122,10 +129,10 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
    *  The z direction is pointing forward of the camera                            *
    *                                                                               *
    *********************************************************************************/
-/*
+
   //filter in x
-  pcl::PointCloud<pcl::PointXYZ> xf_cloud, yf_cloud, zf_cloud;
-  pcl::PassThrough<pcl::PointXYZ> pass_x;
+  pcl::PointCloud<pcl::PointXYZRGB> xf_cloud, yf_cloud, zf_cloud;
+  pcl::PassThrough<pcl::PointXYZRGB> pass_x;
 
   pass_x.setInputCloud(cloud_ptr);
   pass_x.setFilterFieldName("x");
@@ -133,9 +140,9 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
   pass_x.filter(xf_cloud);
 
   //filter in y
-  pcl::PointCloud<pcl::PointXYZ>::Ptr xf_cloud_ptr
-                              (new pcl::PointCloud<pcl::PointXYZ>(xf_cloud));
-  pcl::PassThrough<pcl::PointXYZ> pass_y;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xf_cloud_ptr
+                              (new pcl::PointCloud<pcl::PointXYZRGB>(xf_cloud));
+  pcl::PassThrough<pcl::PointXYZRGB> pass_y;
 
   pass_y.setInputCloud(xf_cloud_ptr);
   pass_y.setFilterFieldName("y");
@@ -143,41 +150,41 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
   pass_y.filter(yf_cloud);
 
   //filter in z 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr yf_cloud_ptr
-                              (new pcl::PointCloud<pcl::PointXYZ>(yf_cloud));
-  pcl::PassThrough<pcl::PointXYZ> pass_z;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr yf_cloud_ptr
+                              (new pcl::PointCloud<pcl::PointXYZRGB>(yf_cloud));
+  pcl::PassThrough<pcl::PointXYZRGB> pass_z;
 
   pass_z.setInputCloud(yf_cloud_ptr);
   pass_z.setFilterFieldName("z");
   pass_z.setFilterLimits(z_filter_min, z_filter_max);
   pass_z.filter(zf_cloud);
 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr croped_cloud_ptr 
-                            (new pcl::PointCloud<pcl::PointXYZ> (zf_cloud));
-*/
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr croped_cloud_ptr 
+                            (new pcl::PointCloud<pcl::PointXYZRGB> (zf_cloud));
+
 
   // croped_cloud_ptr points to a pcl cloud
   // Needs to convert to ROS format before publishing
 
   /*
-   * cloud is now cropped.
+   * croped_cloud_ptr is now pointing to the cropped cloud.
    */
 
   sensor_msgs::PointCloud2::Ptr transformed_ros_cloud_local (new sensor_msgs::PointCloud2);
   Cloud::Ptr transformed_pcl_cloud_local (new Cloud);
 
-  *transformed_pcl_cloud = *cloud_ptr;
+  *transformed_pcl_cloud = *croped_cloud_ptr;
 
-  pcl::toROSMsg(*cloud_ptr, *transformed_ros_cloud);
+  pcl::toROSMsg(*croped_cloud_ptr, *transformed_ros_cloud);
 
   organised_pub.publish(*transformed_ros_cloud);
 }
+
 /**********************************************************************************
  *                                                                                *
  * The Main of this package starts here.                                          *
  *                                                                                *
  **********************************************************************************/
-
 int main(int argc, char *argv[])
 { // Begin of Main
   /*
@@ -196,6 +203,7 @@ int main(int argc, char *argv[])
    */
   cloud_topic = priv_nh_.param<std::string>("cloud_topic", "organized_edge_detector/output_rgb_edge");
   world_frame = priv_nh_.param<std::string>("world_frame", "world");
+
   // We should not use the camera frame but what is reported by the point cloud in the
   // header.frame_id instead. camera_frame;
   // camera_frame = priv_nh_.param<std::string>("camera_frame", "d435i_link");
@@ -203,20 +211,15 @@ int main(int argc, char *argv[])
   /*
    * we need to specify how much we want to see, ie how to crop the image in the camera 
    * frame. That is before transforming it to the World frame.
-   *
-  float x_filter_min, x_filter_max, y_filter_min, y_filter_max, 
-        z_filter_min, z_filter_max;
+   */
+  x_filter_min = priv_nh_.param<float>("x_filter_min", -1.000);
+  x_filter_max = priv_nh_.param<float>("x_filter_max",  1.000);
 
-  x_filter_min = priv_nh_.param<float>("x_filter_min", -0.20);
-  x_filter_max = priv_nh_.param<float>("x_filter_max",  0.20);
-  y_filter_min = priv_nh_.param<float>("y_filter_min",  0.0125);
-  y_filter_max = priv_nh_.param<float>("y_filter_max",  0.02);
-  z_filter_min = priv_nh_.param<float>("z_filter_min",  0.0);
-  z_filter_max = priv_nh_.param<float>("z_filter_max",  0.25);
+  y_filter_min = priv_nh_.param<float>("y_filter_min", -1.000);
+  y_filter_max = priv_nh_.param<float>("y_filter_max",  1.000);
 
- We do not need to crop the image for the time being.
-
-*/
+  z_filter_min = priv_nh_.param<float>("z_filter_min", -1.000);
+  z_filter_max = priv_nh_.param<float>("z_filter_max",  1.000);
 
   /*
    * Setup publisher to publish ROS point clouds to RViz
@@ -231,18 +234,6 @@ int main(int argc, char *argv[])
   ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(cloud_topic, 1, callback);
 
   ros::spin();
-
-/*
- while (ros::ok())
- { // Begin of infinite loop
-
-   /**
-    * Listen for point cloud
-    *
-   std::string topic = nh.resolveName(cloud_topic);
-   // ROS_INFO_STREAM("Cloud service called; waiting for a PointCloud2 on topic "<< topic);
-  } // End of Infinite loop
-*/
 
   return 0;
 } // End of Main

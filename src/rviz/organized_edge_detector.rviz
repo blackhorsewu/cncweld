@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /InputCloud1
+        - /NormalDisplay1
         - /RGBImage1
       Splitter Ratio: 0.5
     Tree Height: 824
@@ -253,18 +254,18 @@ Visualization Manager:
     - Alpha: 1
       Class: jsk_rviz_plugin/NormalDisplay
       Color: 255; 255; 255
-      Display Rate (%): 0.10000000149011612
-      Enabled: false
+      Display Rate (%): 10
+      Enabled: true
       Max Color: 255; 0; 0
       MinColor: 0; 255; 0
       Name: NormalDisplay
       Queue Size: 10
-      Scale: 0.05000000074505806
+      Scale: 0.029999999329447746
       Style: PointsColor
       Topic: /normal_concatenater/output
       Unreliable: false
       Use Rainbow: true
-      Value: false
+      Value: true
     - Class: rviz/Image
       Enabled: true
       Image Topic: /d435i/color/image_rect_color
