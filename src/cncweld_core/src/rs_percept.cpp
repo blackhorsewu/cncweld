@@ -81,7 +81,7 @@
 
 using namespace std;
 
-std::string cloud_topic, world_frame;
+std::string cloud_topic, world_frame, edges_indices;
 ros::Publisher organised_pub;
 
 float x_filter_min, x_filter_max,
@@ -89,8 +89,23 @@ float x_filter_min, x_filter_max,
       z_filter_min, z_filter_max;
 
 /*
- * The Callback function to process the listened point cloud
+ * The Callback function to process the edges indices
 */
+void indices_callback(const std::vector<pcl::PointIndices>& straight_edge_indices)
+{   // straight_edge_indices is a vector of indices of a point cloud.
+
+  // pc2_edges is a vector of edges in ROS format
+  std::vector<sensor_msgs::PointCloud2::Ptr> pc2_edges;
+  // clusters is a vector of edges in PCL format
+  std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr > edges;
+
+  // straight edge indices is a vector of indices of a point cloud.
+  // this point cloud in this case is the /d435i/depth_registered/points.
+}
+
+/*
+ * The Callback function to process the listened point cloud
+ */
 void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
 {  //recent_cloud is the raw ROS point cloud received from the camera
 
@@ -202,6 +217,7 @@ int main(int argc, char *argv[])
    * Parameters for the cloud topic and the reference frames
    */
   cloud_topic = priv_nh_.param<std::string>("cloud_topic", "organized_edge_detector/output_rgb_edge");
+  edges_indices = priv_nh_.param<std::string>("edges_topic", "organized_edge_detector/output_straight_edges_indices");
   world_frame = priv_nh_.param<std::string>("world_frame", "world");
 
   // We should not use the camera frame but what is reported by the point cloud in the
@@ -232,6 +248,9 @@ int main(int argc, char *argv[])
    */
 
   ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(cloud_topic, 1, callback);
+
+  // Listen for Edges Indices - Edges indices
+  ros::Subscriber indices_sub = nh.subscribe<std::vector<pcl::PointIndices>>(edges_indices, 1, indices_callback);
 
   ros::spin();
 
