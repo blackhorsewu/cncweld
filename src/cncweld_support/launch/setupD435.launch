@@ -4,18 +4,19 @@
     name="robot_description" 
     command="$(find xacro)/xacro --inorder '$(find cncweld_support)/urdf/cncweldD435i.xacro'" />
 
-<!-- We do not have a robot connected, so publish fake joint states -->
+<!-- We do not have a robot connected yet, so publish fake joint states -->
   <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
 
 <!-- Given the published joint states, publish tf for the robot links -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
-<!-- Before the Edge Detector can be launched, the RealSense D435i Camera needs to be launched first -->
+<!-- Before the Edge Detector can be launched, the RealSense D435i Camera needs to be launched first.
+     The rs_rgbd.launch will produce ORGANIZED point cloud instead of UN-organized point cloud. -->
   <include file="$(find realsense2_camera)/launch/rs_rgbd.launch">
     <arg name="camera" value="d435i" />
   </include>
 
-<!-- Invoke the Jsp Organized Edge Detector. Here Organized meaning the point cloud is organized. -->
+<!-- Invoke the Jsp Organized Edge Detector. Here Organized meaning the point cloud is ORGANIZED. -->
 
 <!-- Because the detector is a nodelet, so it is necessary to start the nodelet manager first -->
   <node name="sample_manager"
@@ -29,7 +30,7 @@
     <remap from="~input" to="/d435i/depth_registered/points"/>
     <rosparam>
       publish_normal: true
-      use_nan_boundary: true
+      use_nan_boundary: false
       use_rgb: true
       use_straightline_detection: true
     </rosparam>
