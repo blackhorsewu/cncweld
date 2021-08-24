@@ -10,7 +10,8 @@
                 "/opt/ros/noetic/include/**",
                 "/home/victor/cncweld/src/realsense-ros/realsense2_camera/include/**",
                 "/usr/include/**",
-                "/opt/ros/noetic/include"
+                "/opt/ros/noetic/include",
+                "/usr/include/opencv4"
             ],
             "name": "ROS"
         }

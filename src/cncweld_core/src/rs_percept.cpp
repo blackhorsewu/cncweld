@@ -79,39 +79,24 @@
 
 #include <time.h>
 
+#include "jsk_pcl_ros/organized_edge_detector.h"
+#include "jsk_recognition_utils/pcl_conversion_util.h"
+
+#include <pcl/features/organized_edge_detection.h>
+#include <pcl/features/integral_image_normal.h>
+#include "jsk_recognition_utils/pcl_util.h"
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <std_msgs/ColorRGBA.h>
+
+#include <jsk_topic_tools/color_utils.h>
+#include <jsk_recognition_msgs/ClusterPointIndices.h>
+
 using namespace std;
-
-std::string cloud_topic, world_frame, edges_indices;
-ros::Publisher organised_pub;
-
-float x_filter_min, x_filter_max,
-      y_filter_min, y_filter_max, 
-      z_filter_min, z_filter_max;
-
-/*
- * The Callback function to process the edges indices
-*/
-void indices_callback(const std::vector<pcl::PointIndices>& straight_edge_indices)
-{   // straight_edge_indices is a vector of indices of a point cloud.
-
-  // pc2_edges is a vector of edges in ROS format
-  std::vector<sensor_msgs::PointCloud2::Ptr> pc2_edges;
-  // clusters is a vector of edges in PCL format
-  std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr > edges;
-
-  // straight edge indices is a vector of indices of a point cloud.
-  // this point cloud in this case is the /d435i/depth_registered/points.
-}
-
-/*
- * The Callback function to process the listened point cloud
- */
-void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
-{  //recent_cloud is the raw ROS point cloud received from the camera
 
   /*
    * Convert Point Cloud from ROS format to PCL format
-   */
+   *
   pcl::PointCloud<pcl::PointXYZRGB> cloud; // Be careful this is SMALL cloud
 
   // local types
@@ -143,7 +128,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
    *  The y direction is pointing downward of the camera                           *
    *  The z direction is pointing forward of the camera                            *
    *                                                                               *
-   *********************************************************************************/
+   *********************************************************************************
 
   //filter in x
   pcl::PointCloud<pcl::PointXYZRGB> xf_cloud, yf_cloud, zf_cloud;
@@ -183,7 +168,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
 
   /*
    * croped_cloud_ptr is now pointing to the cropped cloud.
-   */
+   *
 
   sensor_msgs::PointCloud2::Ptr transformed_ros_cloud_local (new sensor_msgs::PointCloud2);
   Cloud::Ptr transformed_pcl_cloud_local (new Cloud);
@@ -194,6 +179,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& recent_cloud)
 
   organised_pub.publish(*transformed_ros_cloud);
 }
+*/
 
 /**********************************************************************************
  *                                                                                *
@@ -212,17 +198,31 @@ int main(int argc, char *argv[])
   /*
    * Set up parameters (Could be input from launch file/terminal)
    */
+  ros::Publisher transformed_pub;
 
   /*
    * Parameters for the cloud topic and the reference frames
    */
-  cloud_topic = priv_nh_.param<std::string>("cloud_topic", "organized_edge_detector/output_rgb_edge");
-  edges_indices = priv_nh_.param<std::string>("edges_topic", "organized_edge_detector/output_straight_edges_indices");
+
+  std::string raw_organized_cloud, world_frame, edges_normal;
+
+  /* 
+   * According to Jsk PCL ROS document, the topic organized_edge_detector/output 
+   * contains all the edge point clouds.
+   */
+  raw_organized_cloud = priv_nh_.param<std::string>("cloud_topic", "/d435i/depth_registered/points");
+  // organized_edge_detector/output_straight_edges_indices are clusters of straight edges indices
+  edges_normal = priv_nh_.param<std::string>("edges_topic", "/normal_estimation/output_with_xyz");
+
   world_frame = priv_nh_.param<std::string>("world_frame", "world");
 
-  // We should not use the camera frame but what is reported by the point cloud in the
+  // We should NOT use the camera frame but what is reported by the point cloud in the
   // header.frame_id instead. camera_frame;
   // camera_frame = priv_nh_.param<std::string>("camera_frame", "d435i_link");
+
+  float x_filter_min, x_filter_max,
+        y_filter_min, y_filter_max, 
+        z_filter_min, z_filter_max;
 
   /*
    * we need to specify how much we want to see, ie how to crop the image in the camera 
@@ -240,19 +240,94 @@ int main(int argc, char *argv[])
   /*
    * Setup publisher to publish ROS point clouds to RViz
    */
-  organised_pub = nh.advertise<sensor_msgs::PointCloud2>("organised", 1);
+  transformed_pub = nh.advertise<sensor_msgs::PointCloud2>("edges", 1);
 
+  // Transforms to transform the point cloud from camera frame to world frame
+  tf::TransformListener listener;
+  tf::StampedTransform stransform;
 
-  /*
-   * Listen for Point Cloud - Detected Edges point cloud
-   */
+//  while (ros::ok())
+//  {
+   /*
+    * Listen for Raw Organized Point Cloud 
+    *
+    * Instead of Listening to the topic, WAIT for the Raw here.
+    */
 
-  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(cloud_topic, 1, callback);
+    pcl::PointCloud<pcl::PointXYZRGB> organized_cloud;
 
-  // Listen for Edges Indices - Edges indices
-  ros::Subscriber indices_sub = nh.subscribe<std::vector<pcl::PointIndices>>(edges_indices, 1, indices_callback);
+    sensor_msgs::PointCloud2::ConstPtr organized_pc2 =     // organized_cloud is a ROS format cloud
+        ros::topic::waitForMessage<sensor_msgs::PointCloud2>(raw_organized_cloud, nh);
 
-  ros::spin();
+    // pcl::fromROSMsg(*organized_pc2, organized_cloud);
 
+    ROS_INFO_STREAM("Organized cloud topic: " << raw_organized_cloud << " received.");
+
+    /*
+     * Now is the time to Transform the could to the World frame
+     * then all the individual could must be stitched together.
+     */
+    try
+    {
+      listener.waitForTransform(world_frame,
+                                organized_pc2->header.frame_id,
+                                ros::Time::now(),
+                                ros::Duration(0.5));
+      listener.lookupTransform(world_frame,
+                               organized_pc2->header.frame_id,
+                               ros::Time(0),
+                               stransform);
+    }
+    catch(tf::TransformException ex)
+    {
+      ROS_ERROR("%s", ex.what());
+    }
+    
+    sensor_msgs::PointCloud2 transformed_pc2;
+
+    pcl_ros::transformPointCloud(world_frame,
+                                 stransform,
+                                 *organized_pc2,
+                                 transformed_pc2);
+
+    pcl::fromROSMsg(transformed_pc2, organized_cloud) ;
+
+    // publish the transformed cloud
+    transformed_pub.publish(transformed_pc2);
+
+     /*
+      * Wait for Edges Normals - edge normals
+      *
+
+      pcl::PointCloud<pcl::PointXYZRGBNormal> normals_cloud;
+
+      sensor_msgs::PointCloud2::ConstPtr edge_normals =
+          ros::topic::waitForMessage<sensor_msgs::PointCloud2>(edges_normal, nh);
+
+      ROS_INFO_STREAM("Edges Normal topic: " << edges_normal << " received.");
+
+      pcl::fromROSMsg(*edge_normals, normals_cloud);
+
+      int n = normals_cloud.points.size();
+
+      ROS_INFO_STREAM("There are " << n << "points in the edges.");
+
+      for (int i = 0; i < n; i++)
+      {
+        if (normals_cloud.points.at(i).curvature != 0.0) {
+        ROS_INFO_STREAM("Point " << i+1 << ":\n X: " << normals_cloud.points.at(i).x <<
+                                            " Y: " << normals_cloud.points.at(i).y <<
+                                            " Z: " << normals_cloud.points.at(i).z <<
+//                                            " R: " << normals_cloud.points.at(i).r <<
+//                                            " G: " << normals_cloud.points.at(i).g <<
+//                                            " B: " << normals_cloud.points.at(i).b <<
+                                            " nX: " << normals_cloud.points.at(i).normal_x <<
+                                            " nY: " << normals_cloud.points.at(i).normal_y <<
+                                            " nZ: " << normals_cloud.points.at(i).normal_z <<
+                                            " Curvature: " << normals_cloud.points.at(i).curvature <<
+        ".");}
+      }
+    */
+//  }
   return 0;
 } // End of Main

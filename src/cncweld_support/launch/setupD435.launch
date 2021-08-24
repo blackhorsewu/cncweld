@@ -43,7 +43,7 @@
     <remap from="~input" to="organized_edge_detector/output_rgb_edge"/>
     <rosparam>
       radius_search: 0
-      k_search: 10
+      k_search: 200
       spatial_locator: 2
     </rosparam>
   </node>

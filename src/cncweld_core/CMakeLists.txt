@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   rviz_visual_tools
 )
 find_package(PCL REQUIRED)
+find_package(OpenCV 4.0.0 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -141,6 +142,7 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
