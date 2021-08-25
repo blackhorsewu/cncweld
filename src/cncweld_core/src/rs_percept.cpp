@@ -94,6 +94,19 @@
 
 using namespace std;
 
+std::string raw_organized_cloud, world_frame, edges_normal;
+
+float x_filter_min, x_filter_max,
+      y_filter_min, y_filter_max, 
+      z_filter_min, z_filter_max;
+
+//
+// My convention here:
+// variables ending pc2 are ROS PointCloud2
+// variables ending cloud are PCL PointCloud
+//
+
+
   /*
    * Convert Point Cloud from ROS format to PCL format
    *
@@ -117,6 +130,60 @@ using namespace std;
 
   // from here on we are dealing with PCL point cloud
 
+
+  /*
+   * croped_cloud_ptr is now pointing to the cropped cloud.
+   *
+
+  sensor_msgs::PointCloud2::Ptr transformed_ros_cloud_local (new sensor_msgs::PointCloud2);
+  Cloud::Ptr transformed_pcl_cloud_local (new Cloud);
+
+  *transformed_pcl_cloud = *croped_cloud_ptr;
+
+  pcl::toROSMsg(*croped_cloud_ptr, *transformed_ros_cloud);
+
+  organised_pub.publish(*transformed_ros_cloud);
+}
+*/
+
+
+void my_transform(sensor_msgs::PointCloud2::ConstPtr organized_pc2, 
+                  pcl::PointCloud<pcl::PointXYZRGB> output_cloud)
+{
+  // Transforms to transform the point cloud from camera frame to world frame
+  tf::TransformListener listener;
+  tf::StampedTransform stransform;
+
+  try
+  {
+    listener.waitForTransform(world_frame,
+                              organized_pc2->header.frame_id,
+                              ros::Time::now(),
+                              ros::Duration(0.5));
+    listener.lookupTransform(world_frame,
+                              organized_pc2->header.frame_id,
+                              ros::Time(0),
+                              stransform);
+  }
+  catch(tf::TransformException ex)
+  {
+    ROS_ERROR("%s", ex.what());
+  }
+  
+  sensor_msgs::PointCloud2 transformed_pc2;
+
+  pcl_ros::transformPointCloud(world_frame,
+                                stransform,
+                                *organized_pc2,
+                                transformed_pc2);
+
+  pcl::fromROSMsg(transformed_pc2, output_cloud) ;
+}
+
+
+void my_crop(pcl::PointCloud<pcl::PointXYZRGB> in_cloud, pcl::PointCloud<pcl::PointXYZRGB> out_cloud)
+{
+
   /*********************************************************************************
    *                                                                               *
    *  PASSTHROUGH FILTER(S)                                                        *
@@ -128,7 +195,7 @@ using namespace std;
    *  The y direction is pointing downward of the camera                           *
    *  The z direction is pointing forward of the camera                            *
    *                                                                               *
-   *********************************************************************************
+   *********************************************************************************/
 
   //filter in x
   pcl::PointCloud<pcl::PointXYZRGB> xf_cloud, yf_cloud, zf_cloud;
@@ -165,21 +232,7 @@ using namespace std;
 
   // croped_cloud_ptr points to a pcl cloud
   // Needs to convert to ROS format before publishing
-
-  /*
-   * croped_cloud_ptr is now pointing to the cropped cloud.
-   *
-
-  sensor_msgs::PointCloud2::Ptr transformed_ros_cloud_local (new sensor_msgs::PointCloud2);
-  Cloud::Ptr transformed_pcl_cloud_local (new Cloud);
-
-  *transformed_pcl_cloud = *croped_cloud_ptr;
-
-  pcl::toROSMsg(*croped_cloud_ptr, *transformed_ros_cloud);
-
-  organised_pub.publish(*transformed_ros_cloud);
 }
-*/
 
 /**********************************************************************************
  *                                                                                *
@@ -198,13 +251,11 @@ int main(int argc, char *argv[])
   /*
    * Set up parameters (Could be input from launch file/terminal)
    */
-  ros::Publisher transformed_pub;
+  ros::Publisher resultant_pub;
 
   /*
    * Parameters for the cloud topic and the reference frames
    */
-
-  std::string raw_organized_cloud, world_frame, edges_normal;
 
   /* 
    * According to Jsk PCL ROS document, the topic organized_edge_detector/output 
@@ -220,80 +271,111 @@ int main(int argc, char *argv[])
   // header.frame_id instead. camera_frame;
   // camera_frame = priv_nh_.param<std::string>("camera_frame", "d435i_link");
 
-  float x_filter_min, x_filter_max,
-        y_filter_min, y_filter_max, 
-        z_filter_min, z_filter_max;
-
   /*
-   * we need to specify how much we want to see, ie how to crop the image in the camera 
-   * frame. That is before transforming it to the World frame.
+   * Because it is necessary to stitch clouds together, each individual cloud needs to
+   * be transformed before they can be stitched. So, after they have been transformed
+   * and stitched, it can only be cropped in the WORLD coordinate.
+   * Therefore, the X, Y, and Z min and max must be specified in the WORLD coordinate.
    */
-  x_filter_min = priv_nh_.param<float>("x_filter_min", -1.000);
-  x_filter_max = priv_nh_.param<float>("x_filter_max",  1.000);
+  x_filter_min = priv_nh_.param<float>("x_filter_min", 0.340);
+  x_filter_max = priv_nh_.param<float>("x_filter_max", 0.940);
 
-  y_filter_min = priv_nh_.param<float>("y_filter_min", -1.000);
-  y_filter_max = priv_nh_.param<float>("y_filter_max",  1.000);
+  y_filter_min = priv_nh_.param<float>("y_filter_min", -0.1375);
+  y_filter_max = priv_nh_.param<float>("y_filter_max", 0.1375);
 
-  z_filter_min = priv_nh_.param<float>("z_filter_min", -1.000);
-  z_filter_max = priv_nh_.param<float>("z_filter_max",  1.000);
+  z_filter_min = priv_nh_.param<float>("z_filter_min", -0.285);
+  z_filter_max = priv_nh_.param<float>("z_filter_max",  0.000);
 
   /*
    * Setup publisher to publish ROS point clouds to RViz
    */
-  transformed_pub = nh.advertise<sensor_msgs::PointCloud2>("edges", 1);
+  resultant_pub = nh.advertise<sensor_msgs::PointCloud2>("resultant", 1);
 
-  // Transforms to transform the point cloud from camera frame to world frame
-  tf::TransformListener listener;
-  tf::StampedTransform stransform;
+  sensor_msgs::PointCloud2 resultant_pc2;
+  pcl::PointCloud<pcl::PointXYZRGB> resultant_cloud;
+  
 
 //  while (ros::ok())
 //  {
+    pcl::PointCloud<pcl::PointXYZRGB> local_cloud, cropped_cloud;
+    string reply1;
+
    /*
     * Listen for Raw Organized Point Cloud 
     *
     * Instead of Listening to the topic, WAIT for the Raw here.
+    * 
+    * The working area of the CNC is about 600mm in the X direction.
+    * The D435i camera can cover about 200mm (slightly more) in the X direction.
+    * 
+    * It is going to read the FIRST 200 mm.
     */
-
-    pcl::PointCloud<pcl::PointXYZRGB> organized_cloud;
 
     sensor_msgs::PointCloud2::ConstPtr organized_pc2 =     // organized_cloud is a ROS format cloud
         ros::topic::waitForMessage<sensor_msgs::PointCloud2>(raw_organized_cloud, nh);
 
-    // pcl::fromROSMsg(*organized_pc2, organized_cloud);
+    ROS_INFO_STREAM("Organized cloud topic: " << raw_organized_cloud << " received.");
+
+    // must transform it to WORLD coordinate first before anything can be done to it.
+    my_transform(organized_pc2, local_cloud);
+
+    // then grop it to the right width in the Y direction.
+    my_crop(local_cloud, cropped_cloud);
+
+    pcl::fromROSMsg(*organized_pc2, local_cloud); // convert the ROS cloud to PCL cloud
+
+    resultant_cloud += local_cloud; // concatenate it to form a complete cloud
+
+    pcl::toROSMsg(resultant_cloud, resultant_pc2);
+
+    resultant_pc2.header.frame_id = organized_pc2->header.frame_id;
+    // publish the resultant cloud
+    resultant_pub.publish(resultant_pc2);
+
+    getline(cin, reply1); // Hit return after the camera has moved 200mm for the 2nd scan
+
+   /* 
+    * It is going to read the SECOND 200 mm.
+    */
+
+    organized_pc2 =     // organized_cloud is a ROS format cloud
+        ros::topic::waitForMessage<sensor_msgs::PointCloud2>(raw_organized_cloud, nh);
 
     ROS_INFO_STREAM("Organized cloud topic: " << raw_organized_cloud << " received.");
 
-    /*
-     * Now is the time to Transform the could to the World frame
-     * then all the individual could must be stitched together.
-     */
-    try
-    {
-      listener.waitForTransform(world_frame,
-                                organized_pc2->header.frame_id,
-                                ros::Time::now(),
-                                ros::Duration(0.5));
-      listener.lookupTransform(world_frame,
-                               organized_pc2->header.frame_id,
-                               ros::Time(0),
-                               stransform);
-    }
-    catch(tf::TransformException ex)
-    {
-      ROS_ERROR("%s", ex.what());
-    }
-    
-    sensor_msgs::PointCloud2 transformed_pc2;
+    pcl::fromROSMsg(*organized_pc2, local_cloud); // convert the ROS cloud to PCL cloud
 
-    pcl_ros::transformPointCloud(world_frame,
-                                 stransform,
-                                 *organized_pc2,
-                                 transformed_pc2);
+    resultant_cloud += local_cloud; // concatenate it to form a complete cloud
 
-    pcl::fromROSMsg(transformed_pc2, organized_cloud) ;
+    pcl::toROSMsg(resultant_cloud, resultant_pc2);
 
-    // publish the transformed cloud
-    transformed_pub.publish(transformed_pc2);
+    // publish the resultant cloud
+    resultant_pub.publish(resultant_pc2);
+
+    getline(cin, reply1); // Hit return after the camera has moved 200mm for the 3rd scan
+
+   /* 
+    * It is going to read the THIRD 200 mm.
+    */
+
+    organized_pc2 =     // organized_cloud is a ROS format cloud
+        ros::topic::waitForMessage<sensor_msgs::PointCloud2>(raw_organized_cloud, nh);
+
+    ROS_INFO_STREAM("Organized cloud topic: " << raw_organized_cloud << " received.");
+
+    pcl::fromROSMsg(*organized_pc2, local_cloud); // convert the ROS cloud to PCL cloud
+
+    resultant_cloud += local_cloud; // concatenate it to form a complete cloud
+
+    pcl::toROSMsg(resultant_cloud, resultant_pc2);
+
+    // publish the resultant cloud
+    resultant_pub.publish(resultant_pc2);
+
+    // 
+    // Do not read the Edges Normals yet but read the 2nd organized cloud.
+    //
+
 
      /*
       * Wait for Edges Normals - edge normals
@@ -331,3 +413,4 @@ int main(int argc, char *argv[])
 //  }
   return 0;
 } // End of Main
+// ROS_INFO("Here 1.");
