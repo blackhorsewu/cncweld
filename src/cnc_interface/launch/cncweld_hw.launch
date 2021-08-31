@@ -1,0 +1,29 @@
+<!--
+  Launch file for the cnc_interface node based on the smoothie-shapeoko.launch
+-->
+  <launch>
+    <!-- cnc_interface node-->
+    <node  name="cnc_interface"  pkg="cnc_interface" type="cnc_interface.py">
+      <!--Serial Port parameters-->
+      <param name="baudrate"     type="double" value="115200" />
+      <param name="port"         type="string" value="/dev/ttyACM0"/>
+      <!--Axis acceleration values in mm/s^2  -->
+      <param name="acceleration" type="int"    value="1000" /> 
+      <!--Workable volume in mm  -->
+      <param name="x_max" type="int" value="650" />  
+      <param name="y_max" type="int" value="150" />  
+      <param name="z_max" type="int" value="-20" /> 
+      <!-- Speed values in mm/min -->
+      <!-- 5mm/sec = 300mm/min-->
+      <param name="default_speed" type="int" value="1000" /> 
+      <param name="x_max_speed"   type="int" value="300" />  
+      <param name="y_max_speed"   type="int" value="300" />
+      <param name="z_max_speed"   type="int" value="300" />    
+      <!--axis steps values in steps/mm -->
+      <!-- In our situation, it takes 200 pulses for 1 revolution,
+           it moves 1 mm per revolution. Therefore they are all 200 -->
+      <param name="x_steps_mm" type="int" value="200" />  
+      <param name="y_steps_mm" type="int" value="200" />
+      <param name="z_steps_mm" type="int" value="200" />
+    </node>
+  </launch>
