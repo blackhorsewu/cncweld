@@ -10,6 +10,10 @@
 <!-- Given the published joint states, publish tf for the robot links -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
+<!-- Launch the cnc_interface -->
+  <include file="$(find cnc_interface)/launch/cncweld_hw.launch">
+  </include>
+
 <!-- Before the Edge Detector can be launched, the RealSense D435i Camera needs to be launched first.
      The rs_rgbd.launch will produce ORGANIZED point cloud instead of UN-organized point cloud. -->
   <include file="$(find realsense2_camera)/launch/rs_rgbd.launch">

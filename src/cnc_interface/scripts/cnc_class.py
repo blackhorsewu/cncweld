@@ -93,14 +93,14 @@ class cnc:
 		
 	def home(self):
 		# initaites the home procedure
-		self.s.write("$H\n")
+		self.s.write(str.encode("$H\n"))
 		self.s.readline()
 		self.pos = list(self.origin)
 
 	def enableSteppers(self):
 		# enable the stepper motors
 		try:
-			self.s.write("M17\n")
+			self.s.write(str.encode("M17\n"))
 			self.s.readline()
 		except:
 			print("Serial port unavailable")	
@@ -108,7 +108,7 @@ class cnc:
 	def disableSteppers(self):
 		# Disable the stepper motors
 		try:
-			self.s.write("M18\n")
+			self.s.write(str.encode("M18\n"))
 			self.s.readline()
 		except:
 			print("Serial port unavailable")
@@ -139,7 +139,7 @@ class cnc:
 		gcode += ' F' + str(speed)
 		gcode += '\n'
 		try:
-			self.s.write(gcode)
+			self.s.write(str.encode(gcode))
 			self.s.readline()
 		except:
 			print("Serial port unavailable")
@@ -167,7 +167,7 @@ class cnc:
 		gcode += ' f' + str(speed)
 		gcode += '\n'
 		
-		self.s.write(gcode)
+		self.s.write(str.encode(gcode))
 		self.s.readline()		
 
 		# the position update should be done after reading state
@@ -187,7 +187,7 @@ class cnc:
 	def setOrigin(self, x=0, y=0, z=0):
 		"""set current position to be (0,0,0), or a custom (x,y,z)"""
 		gcode = "G92 x{} y{} z{}\n".format(x, y, z)
-		self.s.write(gcode)
+		self.s.write(str.encode(gcode))
 		self.s.readline()
 		
 		# update our internal location
@@ -199,9 +199,9 @@ class cnc:
 		
 		self.abs_move = absoluteMode
 		if absoluteMode:
-			self.s.write("G90\n")		# absolute movement mode
+			self.s.write(str.encode("G90\n"))		# absolute movement mode
 		else:
-			self.s.write("G91\n")		# relative movement mode
+			self.s.write(str.encode("G91\n"))		# relative movement mode
 		self.s.readline()
 	
 
@@ -209,7 +209,7 @@ class cnc:
 		""" polls until GRBL indicates it is done with the last command """
 		pollcount = 0
 		while True:
-			self.s.write("?")
+			self.s.write(str.encode("?"))
 			status = self.s.readline()
 			if status.startswith('<Idle'): break
 			# not used
@@ -220,7 +220,7 @@ class cnc:
 		
 	def getStatus(self):
 
-		self.s.write("?")
+		self.s.write(str.encode("?"))
 		
 		while True:
 			try: 
