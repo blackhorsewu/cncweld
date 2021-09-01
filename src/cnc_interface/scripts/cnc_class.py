@@ -221,10 +221,11 @@ class cnc:
 	def getStatus(self):
 
 		self.s.write(str.encode("?"))
-		
+		print("sent ?")
 		while True:
 			try: 
 				status = self.s.readline()
+				print(status)
 				if status is not None:
 					try:
 						matches = self.__pos_pattern__.findall(status)

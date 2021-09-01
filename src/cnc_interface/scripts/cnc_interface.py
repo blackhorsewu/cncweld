@@ -46,12 +46,16 @@ def main():
 	steps_y 	  = rospy.get_param('cnc_interface/y_steps_mm')
 	steps_z 	  = rospy.get_param('cnc_interface/z_steps_mm')
 
+	print ("I am here 1.")
+
 	cnc_obj.startup(port,baud,acc,max_x,max_y,max_z,default_speed,speed_x,speed_y,
 					speed_z,steps_x,steps_y,steps_z)
 	rate = rospy.Rate(10)
 
-	while not rospy.is_shutdown():
+	print ("I am here 2.")
 
+	while not rospy.is_shutdown():
+		print("I am here 3.")
 		status     = cnc_obj.getStatus()
 		cnc_pose   = cnc_obj.getTwist()
 		ros_status = String(status)
