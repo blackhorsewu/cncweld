@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
 <!-- cncweldD435i.xacro is the description of the cnc with the torch and the D435i camera -->
   <param 

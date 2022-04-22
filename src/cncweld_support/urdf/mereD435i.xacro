@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro"
+       name="realsense_d435i" >
+
+<!--
+  This is the URDF model for the D435i only.
+-->
+
+<!-- There are:-
+     1. The World, everything lives in it.
+     2. The Intel RealSense D435i RGBD camera at the Origin.
+-->
+
+  <!-- (1) The World link -->
+  <link name="world" />
+
+<!--
+  The World to base link of the CNC mechanism Fixed Joint
+-->
+  <joint name="world_to_base_link" type="fixed">
+    <parent link="world" />
+    <child link="base_link" />
+    <origin xyz="0.0 0.0 1.132" rpy="0.0 0.0 0.0" />
+  </joint>
+
+  <link name="base_link" />
+<!--
+  <sensor_d435 parent="base_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </sensor_d435>
+-->
+  <!-- Import the realsense D435i description -->
+  <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+  <xacro:sensor_d435 parent="base_link" use_nominal_extrinsics="true" name="d435i">
+    <origin xyz=" 0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+  </xacro:sensor_d435>
+
+</robot>

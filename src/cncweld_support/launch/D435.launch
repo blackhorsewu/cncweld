@@ -1,0 +1,33 @@
+<launch>
+<!-- cncweldD435i.xacro is the description of the cnc with the torch and the D435i camera -->
+  <param 
+    name="robot_description" 
+    command="$(find xacro)/xacro --inorder '$(find cncweld_support)/urdf/mereD435i.xacro'" />
+
+<!-- We do not have a robot connected yet, so publish fake joint states -->
+  <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
+
+<!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+
+<!-- The RealSense D435i Camera needs to be launched first.
+     The rs_rgbd.launch will produce ORGANIZED point cloud instead of UN-organized point cloud. -->
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera" value="d435i" />
+    <arg name="align_depth" value="true" />
+    <arg name="enable_pointcloud" value="true" />
+    <arg name="ordered_pc" value="true" />
+    <arg name="stereo_module/exposure/1" value="1" />
+    <arg name="stereo_module/exposure/2" value="1" />
+    <arg name="stereo_module/gain/1" value="1" />
+    <arg name="stereo_module/gain/2" value="1" />
+  </include>
+
+  <node 
+    name="rviz" 
+    pkg="rviz" 
+    type="rviz" 
+    args="-d $(find cncweld_support)/rviz/cncweld_support.rviz"
+  />
+</launch>

@@ -1,13 +1,20 @@
 <?xml version="1.0"?>
 <launch>
-  <include file="$(find roboweld_moveit_config)/launch/roboweld_planning_executionKeyence.launch">
+<!-- cncweldKeyence.xacro is the description of the cnc with the torch and the Keyence LJ V7200 -->
+  <param
+    name="robot_description"
+    command="$(find xacro)/xacro --inorder '$(find cncweld_support)/urdf/cncweldKeyence.xacro' " />
 
-<!-- Simulated Robot in RViz 
-    <arg name="sim" default="true" />
+<!-- We do not have a robot connected yet, so publish fake joint states -->
+  <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
+
+<!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+<!-- Launch the cnc_interface 
+  <include file="$(find cnc_interface)/launch/cncweld_hw.launch">
+  </include>
 -->
-<!-- Real Robot -->
-    <arg name="sim" default="false"/>
-    <arg name="robot_ip" value="192.168.0.103"/>
 
   </include>
 <!--
@@ -18,4 +25,10 @@
   <node name="descartes_node" type="descartes_node" pkg="roboweld_core" output="screen"/>
 -->
 
+  <node 
+    name="rviz" 
+    pkg="rviz" 
+    type="rviz" 
+    args="-d $(find cncweld_support)/rviz/cncweld_support.rviz"
+  />
 </launch>

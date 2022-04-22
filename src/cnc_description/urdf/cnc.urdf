@@ -4,9 +4,13 @@ This is the URDF model for the Self Built CNC Welding Mechanism for CNERC, HK Po
 15 July 2021, by Victor W H Wu.
 Updated on 18 July 2021 to have all X, Y, and Z axes.
 The Turn table is still needed to be put on and replace the tool0.
-Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding Torch, and Laser Scanner.
+Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding Torch,
+                         and Laser Scanner.
+Updated on 22 April 2022 the turn table and the torch and laser scanner are splitted
+                         so that the Z link has the turn table and the torch and 
+                         scanner are held together and becomes the end effector and
+                         is called the torch.
 -->
-
 
 <robot name="cncweld" xmlns:xacro="http://ros.org/wiki/xacro">
 <!--
@@ -15,7 +19,7 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
 
 <!--
   There are 2 rails for the base link. The base_link.STL has already
-  included 2 trails in it.
+  included 2 rails in it.
 -->
   <link
     name="base_link">
@@ -185,8 +189,6 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
     <axis  xyz="0 0 1"/>
   </joint>
 
-<link name="tool0" />
-
 <!--
   The Z_link to tool0 Revolute Joint
 -->
@@ -197,6 +199,61 @@ Updated on 19 July 2021, tool0 has been replaced with the Turn Table, Welding To
     <child
       link="tool0" />
     <limit effort="1000.0" lower="-3.1416" upper="3.1416" velocity="0.05"/>
+  </joint>
+
+<!--
+  The tool0 link
+-->
+  <link name="tool0">
+    <visual>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/torch.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cnc_description/meshes/torch.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+<link name="torch" />
+
+<!--
+  The tool0 to torch fixed Joint
+-->
+  <joint name="tool0_torch" type="fixed">
+    <origin xyz="0.082 0.0 -0.190" rpy="0.0 0.0 0.0" />
+    <parent
+      link="tool0" />
+    <child
+      link="torch" />
+  </joint>
+
+<link name="sensor_optical_frame" />
+
+<!--
+  The tool0 to keyence_optical_frame fixed Joint
+-->
+  <joint name="tool0_sensor_optical_frame" type="fixed">
+    <origin xyz="0.082 0.0 -0.190" rpy="0.0 0.471238898038469 0.0" />
+    <parent
+      link="tool0" />
+    <child
+      link="sensor_optical_frame" />
   </joint>
 
 </robot>
