@@ -7,11 +7,10 @@
             },
             "includePath": [
                 "/home/victor/cncweld/devel/include/**",
-                "/opt/ros/noetic/include/**",
-                "/home/victor/cncweld/src/realsense-ros/realsense2_camera/include/**",
+                "/opt/ros/melodic/include/**",
                 "/usr/include/**",
-                "/opt/ros/noetic/include",
-                "/usr/include/opencv4"
+                "/opt/ros/melodic/include",
+                "${workspaceFolder}/src/keyence_experimental/keyence_library/include"
             ],
             "name": "ROS"
         }

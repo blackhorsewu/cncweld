@@ -75,7 +75,8 @@
   </link>
 
   <joint name="wrist_3_link-lj_v7200_fixed_joint" type="fixed">
-    <origin xyz="0.062 -0.105 0.1599" rpy="0 ${pi} ${-pi/2.0}"/>
+<!--    <origin xyz="0.062 -0.105 0.1599" rpy="0 ${pi} ${-pi/2.0}"/>-->
+    <origin xyz="0.062 -0.105 0.1599" rpy="0 ${pi} ${-pi}"/>
     <parent link="wrist_3_link"/>
     <child link="lj_v7200_frame"/>
   </joint>

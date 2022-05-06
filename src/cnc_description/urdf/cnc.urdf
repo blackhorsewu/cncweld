@@ -10,6 +10,7 @@ Updated on 22 April 2022 the turn table and the torch and laser scanner are spli
                          so that the Z link has the turn table and the torch and 
                          scanner are held together and becomes the end effector and
                          is called the torch.
+Updated on 6 May 2022,   The Origin of the sensor_optical_frame was adjusted.
 -->
 
 <robot name="cncweld" xmlns:xacro="http://ros.org/wiki/xacro">
@@ -131,8 +132,12 @@ Updated on 22 April 2022 the turn table and the torch and laser scanner are spli
   <joint
     name="X_link_Y_link_joint"
     type="prismatic">
+    <!--
     <origin
       xyz="0.08 -0.058 -0.041" rpy="0.0 0.0 0.0" />
+    -->
+    <origin
+      xyz="0.08 -0.10 -0.041" rpy="0.0 0.0 0.0" />
     <parent
       link="X_link" />
     <child
@@ -249,7 +254,7 @@ Updated on 22 April 2022 the turn table and the torch and laser scanner are spli
   The tool0 to keyence_optical_frame fixed Joint
 -->
   <joint name="tool0_sensor_optical_frame" type="fixed">
-    <origin xyz="0.082 0.0 -0.190" rpy="0.0 0.471238898038469 0.0" />
+    <origin xyz="0.082 0.0 -0.190" rpy="0.471238898038469 0.0 -1.5708" />
     <parent
       link="tool0" />
     <child
