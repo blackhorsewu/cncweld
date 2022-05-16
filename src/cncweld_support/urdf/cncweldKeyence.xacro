@@ -5,31 +5,23 @@
 -->
 
 <robot xmlns:xacro="http://ros.org/wiki/xacro"
-       name="roboweld" >
-
-  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
-
-  <!-- ur5 -->
-  
-  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
-
-  <!-- arm -->
-  <xacro:arg name="kinematics_config" default="$(find ur_description)/config/ur5_default.yaml"/>
-  <xacro:ur5_robot prefix="" joint_limited="true"
-    transmission_hw_interface="$(arg transmission_hw_interface)"
-    kinematics_file="${load_yaml('$(arg kinematics_config)')}"
-  />
-
-  <link name="world" />
+       name="cncweld" >
 
 <!-- There are:-
      1. The World, everything lives in it.
-     2. The Welding table, our robot arm is installed on it.
-     3. The Kinect V2, RGBD camera provides the point clouds that we need.
-     4. The UR5, our robot arm, with the Straight Fronius Torch as its end effector.
-     5. The Keyence LJ7200 Laser Scanner attached to the torch holder.
-     6. The RealSense D435i attached to the torch holder.
+     2. The cnc, the Self Built CNC Welding Mechanism with 
+     3. The Straight Fronius Torch as its end effector together with its holder, and
+     4. The Keyence LJ7200 Laser Scanner attached to the torch holder.
 -->
+
+  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
+
+  <!-- The World that we are living in -->
+  <link name="world" />
+
+  <!-- The CNC machine -->
+  
+  <xacro:include filename="$(find cnc_description)/urdf/cnc.urdf" />
 
   <!-- defining tool -->
   <!-- Welding torch holder with the Straight Torch -->

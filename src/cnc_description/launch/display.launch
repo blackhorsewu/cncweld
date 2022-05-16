@@ -3,7 +3,7 @@
   <arg name="cnc" />
   <param 
     name="robot_description" 
-    textfile="$(find cnc_description)/urdf/cnc.urdf" />
+    command="xacro $(find cnc_description)/urdf/cnc.xacro" />
   <node
     name="joint_state_publisher_gui"
     pkg="joint_state_publisher_gui"
