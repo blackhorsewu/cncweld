@@ -75,6 +75,7 @@ class cnc:
 	
 	def getTwist(self):
 
+		print("Getting Twist...")
 		#convert coordinates to ROS Twist format to be able to publish it later
 		cnc_pose = Twist()
 		cnc_pose.linear.x  = float(self.pos[0])
@@ -141,6 +142,7 @@ class cnc:
 		try:
 			self.s.write(str.encode(gcode))
 			self.s.readline()
+			self.pos = newpos
 		except:
 			print("Serial port unavailable")
 
@@ -235,6 +237,7 @@ class cnc:
 						return status
 					except IndexError:
 						print("No matches found in serial")
+					break
 				else: break
 			except:
 				print("Report readiness but empty")

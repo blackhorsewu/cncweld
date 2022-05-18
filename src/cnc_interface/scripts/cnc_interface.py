@@ -33,8 +33,6 @@ def main():
 
 	rospy.init_node('cnc_interface', anonymous=True)
 
-	print ("Finished declaring publishers and subscribers.")
-
 	port          = rospy.get_param('cnc_interface/port')
 	baud          = rospy.get_param('cnc_interface/baudrate')
 	acc           = rospy.get_param('cnc_interface/acceleration')  
@@ -55,7 +53,10 @@ def main():
 
 	while not rospy.is_shutdown():
 		status     = cnc_obj.getStatus()
+		print("Going to get Twist.")
 		cnc_pose   = cnc_obj.getTwist()
+		print (cnc_pose)
+		print("cnc_pose printed.")
 		ros_status = String(status)
 		pos_pub.publish(cnc_pose)
 		status_pub.publish(ros_status)
