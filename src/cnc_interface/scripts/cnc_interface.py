@@ -10,7 +10,6 @@ cnc_obj = cnc()
 
 def cmdCallback(msg):
 
-	print ("a command is received.")
 	rospy.loginfo(rospy.get_name() + ": " + str(msg))
 	print( msg.linear.x, msg.linear.y, msg.linear.z)
 	cnc_obj.moveTo(msg.linear.x, msg.linear.y, msg.linear.z, blockUntilComplete=True)
@@ -53,10 +52,7 @@ def main():
 
 	while not rospy.is_shutdown():
 		status     = cnc_obj.getStatus()
-		print("Going to get Twist.")
 		cnc_pose   = cnc_obj.getTwist()
-		print (cnc_pose)
-		print("cnc_pose printed.")
 		ros_status = String(status)
 		pos_pub.publish(cnc_pose)
 		status_pub.publish(ros_status)
