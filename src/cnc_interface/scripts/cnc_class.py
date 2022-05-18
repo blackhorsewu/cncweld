@@ -226,6 +226,7 @@ class cnc:
 			try: 
 				status = self.s.readline()
 				print(status)
+				print ("status printed out.")
 				if status is not None:
 					try:
 						matches = self.__pos_pattern__.findall(status)
