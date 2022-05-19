@@ -75,7 +75,6 @@ class cnc:
 	
 	def getTwist(self):
 
-		print("Getting Twist...")
 		#convert coordinates to ROS Twist format to be able to publish it later
 		cnc_pose = Twist()
 		cnc_pose.linear.x  = float(self.pos[0])

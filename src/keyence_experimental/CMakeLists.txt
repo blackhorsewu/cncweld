@@ -69,6 +69,21 @@ add_dependencies(
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
+add_executable(
+  concave_scanner
+  src/concave_scanner.cpp
+)
+add_dependencies(
+  concave_scanner
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(
+  concave_scanner
+  keyence_impl
+  ${catkin_LIBRARIES}
+)
 target_link_libraries(
   keyence_driver_node
   keyence_impl

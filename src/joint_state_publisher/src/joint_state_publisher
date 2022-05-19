@@ -93,7 +93,7 @@ class JointStatePublisher():
     # of the joint_list.
     def source_cb(self, msg): # The msg here should be of type Twist
         # Note: The /cnc_interface/position Twist message uses unit mm
-        # while ROS uses unit m
+        # while ROS uses unit m, therefore it is necessary to divide by 1,000.
         joint = self.free_joints['base_link_X_link_joint']
         joint['value'] = msg.linear.x/1000.0
         joint = self.free_joints['X_link_Y_link_joint']
