@@ -1,0 +1,165 @@
+#!/usr/bin/python
+
+import roslib; roslib.load_manifest('clam_controller')
+import rospy
+import wx
+import xml.dom.minidom
+from sensor_msgs.msg import JointState
+from geometry_msgs.msg import Twist
+from math import pi
+from threading import Thread
+
+RANGE = 10000
+
+def get_param(name, value=None):
+    private = "~%s" % name
+    if rospy.has_param(private):
+        return rospy.get_param(private)
+    elif rospy.has_param(name):
+        return rospy.get_param(name)
+    else:
+        return value
+
+class JointStatePublisher():
+    def __init__(self):
+        description = get_param('robot_description')
+        robot = xml.dom.minidom.parseString(description).getElementsByTagName('robot')[0]
+        self.free_joints = {}
+        self.joint_list = [] # for maintaining the original order of the joints
+        self.dependent_joints = get_param("dependent_joints", {})
+        
+        # Find all non-fixed joints
+        for child in robot.childNodes:
+            if child.nodeType is child.TEXT_NODE:
+                continue
+            if child.localName == 'joint':
+                jtype = child.getAttribute('type')
+                if jtype == 'fixed':
+                    continue
+                name = child.getAttribute('name')
+                if jtype == 'continuous':
+                    minval = -pi
+                    maxval = pi
+                else:
+                    limit = child.getElementsByTagName('limit')[0]
+                    minval = float(limit.getAttribute('lower'))
+                    maxval = float(limit.getAttribute('upper'))
+
+                if name in self.dependent_joints:
+                    continue
+                if minval > 0 or maxval < 0:
+                    zeroval = (maxval + minval)/2
+                else:
+                    zeroval = 0
+
+                joint = {'min':minval, 'max':maxval, 'zero':zeroval, 'value':zeroval }
+                self.free_joints[name] = joint
+                self.joint_list.append(name)
+
+        # This node originally was designed to cater for a list of joint position
+        # sources. It will then subscribe to every member of the list of sources.
+        # In our case, we only have one source, that is the Twist message from
+        # cnc_interface. Therefore, we do not need to have source_list. It only need to
+        # Subscribe to the topic published by cnc_interface: /cnc_interface/position
+        #
+        # source_list = get_param("source_list", [])
+        # self.sources = []
+        # for source in source_list:
+        #     self.sources.append(rospy.Subscriber(source, JointState, self.source_cb))
+        rospy.Subscriber('cnc_interface/position', Twist, self.source_cb)
+
+        self.pub = rospy.Publisher('joint_states', JointState)
+
+    # Because it is not a General Purpose node as the original to cater for very 
+    # possible urdf. We only need to work with our own CNC Device which only has 4 dof.
+    # There are 6 joints:
+    # 1. base_link_X_link_joint, prismatic.
+    # 2. X_link_Y_link_joint, prismatic.
+    # 3. Y_link_Z_link_joint, prismatic.
+    # 4. Z_link_tool0, revolute.
+    # 5. tool0_torch, fixed.
+    # 6. tool0_lj_v7200_optical_frame, fixed.
+    # For both joints 5 and 6 are fixed, there will be no position received and hence
+    # do not need to subscribe to them and will not receive position messages from them.
+    def source_cb(self, msg):
+        for i in range(len(msg.name)):
+            name = msg.name[i]
+            position = msg.position[i]
+            if name in self.free_joints:
+                joint = self.free_joints[name]
+                joint['value'] = position
+        
+
+    def loop(self):
+        hz = get_param("rate", 10) # 10hz
+        r = rospy.Rate(hz) 
+
+        # Publish Joint States
+        while not rospy.is_shutdown():
+            msg = JointState()
+            msg.header.stamp = rospy.Time.now()
+
+            # Add Free Joints
+            for (name,joint) in self.free_joints.items():
+                msg.name.append(str(name))
+                msg.position.append(joint['value'])
+
+            # Add Dependent Joints
+            for (name,param) in self.dependent_joints.items():
+                parent = param['parent']
+                baseval = self.free_joints[parent]['value']
+                value = baseval * param.get('factor', 1)
+
+                msg.name.append(str(name))
+                msg.position.append(value)
+
+            self.pub.publish(msg)
+
+            r.sleep()
+
+    def update_values(self):
+        for (name,joint_info) in self.joint_map.items():
+            purevalue = joint_info['slidervalue']
+            joint = joint_info['joint']
+            value = self.sliderToValue(purevalue, joint)
+            joint['value'] = value
+        self.update_sliders()
+
+    def update_sliders(self):
+        for (name,joint_info) in self.joint_map.items():
+            joint = joint_info['joint']
+            joint_info['slidervalue'] = self.valueToSlider(joint['value'], joint)
+            joint_info['slider'].SetValue(joint_info['slidervalue'])
+            joint_info['display'].SetValue("%.2f"%joint['value'])
+
+    def center_event(self, event):
+        self.center()
+
+    def center(self):
+        rospy.loginfo("Centering")
+        for (name,joint_info) in self.joint_map.items():
+            joint = joint_info['joint']
+            joint_info['slidervalue'] = self.valueToSlider(joint['zero'], joint)
+        self.update_values()
+
+    def sliderUpdate(self, event):
+        for (name,joint_info) in self.joint_map.items():
+            joint_info['slidervalue'] = joint_info['slider'].GetValue()
+        self.update_values()
+
+    def valueToSlider(self, value, joint):
+        return (value - joint['min']) * float(RANGE) / (joint['max'] - joint['min'])
+        
+    def sliderToValue(self, slider, joint):
+        pctvalue = slider / float(RANGE)
+        return joint['min'] + (joint['max']-joint['min']) * pctvalue
+
+
+if __name__ == '__main__':
+    try:
+        rospy.init_node('joint_state_publisher')
+        jsp = JointStatePublisher()
+        jsp.loop()
+        
+    except rospy.ROSInterruptException: pass
+
