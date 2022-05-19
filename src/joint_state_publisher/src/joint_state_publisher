@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
-import roslib; roslib.load_manifest('clam_controller')
+from ntpath import join
+import roslib
+# ; roslib.load_manifest('clam_controller')
 import rospy
 import wx
 import xml.dom.minidom
@@ -23,6 +25,7 @@ def get_param(name, value=None):
 class JointStatePublisher():
     def __init__(self):
         description = get_param('robot_description')
+        # I do not understand the statement below!
         robot = xml.dom.minidom.parseString(description).getElementsByTagName('robot')[0]
         self.free_joints = {}
         self.joint_list = [] # for maintaining the original order of the joints
@@ -55,6 +58,7 @@ class JointStatePublisher():
                 joint = {'min':minval, 'max':maxval, 'zero':zeroval, 'value':zeroval }
                 self.free_joints[name] = joint
                 self.joint_list.append(name)
+                print(name) # this will show all the names of movable joints from the URDF
 
         # This node originally was designed to cater for a list of joint position
         # sources. It will then subscribe to every member of the list of sources.
@@ -66,36 +70,46 @@ class JointStatePublisher():
         # self.sources = []
         # for source in source_list:
         #     self.sources.append(rospy.Subscriber(source, JointState, self.source_cb))
+        #
+        # We have only one source, from cnc_interface. That will publish a topic
+        # /cnc_interface/position of type Twist, that contains both position and orientation.
+        # Therefore, it is only necessary to subscribe to this topic.
+        # So, declare a subscriber to this topic in the statement below:
         rospy.Subscriber('cnc_interface/position', Twist, self.source_cb)
 
+        # Declare a publisher for the topic /joint_states, of type JointState.
         self.pub = rospy.Publisher('joint_states', JointState)
 
-    # Because it is not a General Purpose node as the original to cater for very 
+    # Because it is not a General Purpose node as the original to cater for every 
     # possible urdf. We only need to work with our own CNC Device which only has 4 dof.
-    # There are 6 joints:
+    # There are 4 joints:
     # 1. base_link_X_link_joint, prismatic.
     # 2. X_link_Y_link_joint, prismatic.
     # 3. Y_link_Z_link_joint, prismatic.
     # 4. Z_link_tool0, revolute.
-    # 5. tool0_torch, fixed.
-    # 6. tool0_lj_v7200_optical_frame, fixed.
-    # For both joints 5 and 6 are fixed, there will be no position received and hence
-    # do not need to subscribe to them and will not receive position messages from them.
-    def source_cb(self, msg):
-        for i in range(len(msg.name)):
-            name = msg.name[i]
-            position = msg.position[i]
-            if name in self.free_joints:
-                joint = self.free_joints[name]
-                joint['value'] = position
-        
+    #
+    # When a message of the topic /cnc_interface/position is received, take the value of the
+    # position of each of the 4 movable joints, listed above, and put them into each elements
+    # of the joint_list.
+    def source_cb(self, msg): # The msg here should be of type Twist
+        # Note: The /cnc_interface/position Twist message uses unit mm
+        # while ROS uses unit m
+        joint = self.free_joints['base_link_X_link_joint']
+        joint['value'] = msg.linear.x/1000.0
+        joint = self.free_joints['X_link_Y_link_joint']
+        joint['value'] = msg.linear.y/1000.0
+        joint = self.free_joints['Y_link_Z_link_joint']
+        joint['value'] = msg.linear.z/1000.0
+        joint = self.free_joints['Z_link_tool0']
+        joint['value'] = msg.angular.x/1000.0
 
     def loop(self):
         hz = get_param("rate", 10) # 10hz
         r = rospy.Rate(hz) 
 
         # Publish Joint States
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown(): # keep on publishing until shutdown
+            # Construct a message of type JointState
             msg = JointState()
             msg.header.stamp = rospy.Time.now()
 
@@ -117,46 +131,9 @@ class JointStatePublisher():
 
             r.sleep()
 
-    def update_values(self):
-        for (name,joint_info) in self.joint_map.items():
-            purevalue = joint_info['slidervalue']
-            joint = joint_info['joint']
-            value = self.sliderToValue(purevalue, joint)
-            joint['value'] = value
-        self.update_sliders()
-
-    def update_sliders(self):
-        for (name,joint_info) in self.joint_map.items():
-            joint = joint_info['joint']
-            joint_info['slidervalue'] = self.valueToSlider(joint['value'], joint)
-            joint_info['slider'].SetValue(joint_info['slidervalue'])
-            joint_info['display'].SetValue("%.2f"%joint['value'])
-
-    def center_event(self, event):
-        self.center()
-
-    def center(self):
-        rospy.loginfo("Centering")
-        for (name,joint_info) in self.joint_map.items():
-            joint = joint_info['joint']
-            joint_info['slidervalue'] = self.valueToSlider(joint['zero'], joint)
-        self.update_values()
-
-    def sliderUpdate(self, event):
-        for (name,joint_info) in self.joint_map.items():
-            joint_info['slidervalue'] = joint_info['slider'].GetValue()
-        self.update_values()
-
-    def valueToSlider(self, value, joint):
-        return (value - joint['min']) * float(RANGE) / (joint['max'] - joint['min'])
-        
-    def sliderToValue(self, slider, joint):
-        pctvalue = slider / float(RANGE)
-        return joint['min'] + (joint['max']-joint['min']) * pctvalue
-
-
 if __name__ == '__main__':
     try:
+        print( "my version of jsp." )
         rospy.init_node('joint_state_publisher')
         jsp = JointStatePublisher()
         jsp.loop()
