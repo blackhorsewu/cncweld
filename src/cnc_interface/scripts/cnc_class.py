@@ -21,6 +21,9 @@ class cnc:
 		self.baudrate 	  = 	 0
 		self.port 		  =     ''
 		self.acceleration =   	 0
+		self.x_min        =   	 0
+		self.y_min        =   	 0
+		self.z_min        =   	 0
 		self.x_max        =   	 0
 		self.y_max        =   	 0
 		self.z_max        =   	 0
@@ -37,14 +40,23 @@ class cnc:
 		# vectors follow the format [X, Y, Z] where Z is assumed to be vertical
 		self.pos     = [0.0, 0.0, 0.0]   # current position
 		self.angular = [0.0, 0.0, 0.0]	 # angular coordinates
-		self.origin  = [0.0, 0.0, 0.0]	 # minimum coordinates
-		self.limits  = [0.0, 0.0, 0.0]	 # maximum coordinates
+		self.origin  = [0.0, 0.0, 0.0]	 # origin is all zeros
+		self.lo_limits  = [0.0, 0.0, 0.0]	 # minimum coordinates
+		self.up_limits  = [0.0, 0.0, 0.0]	 # maximum coordinates
 	
-	def startup(self,port,baud, acc, maxx, maxy,maxz,spdf,spdx, spdy, spdz, stepsx, stepsy, stepsz):
+	def startup(self,port,baud, acc, 
+	            minx, miny, minz,
+				maxx, maxy, maxz,
+				spdf,
+				spdx, spdy, spdz,
+				stepsx, stepsy, stepsz):
 		""" initiate all CNC parameters readed from .launch file """
 		self.baudrate 	  =   baud
 		self.port 	      =   port
 		self.acceleration =    acc
+		self.x_min        =   minx
+		self.y_min        =   miny
+		self.z_min        =   minz
 		self.x_max        =   maxx
 		self.y_max        =   maxy
 		self.z_max        =   maxz
@@ -55,7 +67,8 @@ class cnc:
 		self.x_steps_mm   = stepsx
 		self.y_steps_mm   = stepsy
 		self.z_steps_mm   = stepsz
-		self.limits  = [self.x_max, self.y_max, self.z_max]	
+		self.lo_limits  = [self.x_min, self.y_min, self.z_min]	
+		self.up_limits  = [self.x_max, self.y_max, self.z_max]	
 		#initiates the serial port
 		self.s = serial.Serial(self.port, self.baudrate)
 		# set movement to Absolut coordinates
@@ -75,7 +88,7 @@ class cnc:
 	
 	def getTwist(self):
 
-		#convert coordinates to ROS Twist format to be able to publish it later
+		#convert coordinates to ROS Twist format to be published
 		cnc_pose = Twist()
 		cnc_pose.linear.x  = float(self.pos[0])
 		cnc_pose.linear.y  = float(self.pos[1])
@@ -130,7 +143,8 @@ class cnc:
 		for i in range(3):
 			if pos[i] is not None:
 				#check against self.limits
-				if pos[i] < 0 or pos[i] >= self.limits[i]:
+				# Victor Wu added lo_limits on 20 May 2022, z needs to go -ve
+				if pos[i] < self.lo_limits[i] or pos[i] >= self.up_limits[i]:
 					# if position is outside the movement range, ignore
 					return
 				gcode += ' ' + letters[i] + str(pos[i])
@@ -141,7 +155,8 @@ class cnc:
 		try:
 			self.s.write(str.encode(gcode))
 			self.s.readline()
-			self.pos = newpos
+			# we may not want to change the position TO the destination yet.
+			# self.pos = newpos 
 		except:
 			print("Serial port unavailable")
 
@@ -222,19 +237,22 @@ class cnc:
 	def getStatus(self):
 
 		self.s.write(str.encode("?"))
-		while True:
-			try: 
-				status = self.s.readline()
-				print(status)
-				if status is not None:
-					try:
-						matches = self.__pos_pattern__.findall(status)
-						if len(matches[1]) == 3:
-							self.pos = list(matches[1])				
-						return status
-					except IndexError:
-						print("No matches found in serial")
-					break
-				else: break
-			except:
-				print("Report readiness but empty")
+#		while True:
+		try: 
+			status = self.s.readline()
+			# print(status)
+			if status is not None:
+				try:
+					matches = self.__pos_pattern__.findall(status)
+					if len(matches[1]) == 3:
+						self.pos = list(matches[1])
+						print(status)
+					return status
+				except IndexError:
+					# print("No matches found in serial")
+					print("No Position found in serial")
+#					break
+#				else: break
+		except:
+			print("Report readiness but empty")
+#			self.s.write(str.encode("?"))

@@ -95,6 +95,10 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -102,41 +106,19 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        X_link:
-          Value: false
-        Y_link:
-          Value: false
-        Z_link:
-          Value: false
-        base_link:
-          Value: false
-        lj_v7200_optical_frame:
-          Value: false
-        tool0:
-          Value: false
-        torch:
-          Value: false
       Marker Scale: 0.30000001192092896
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        base_link:
-          X_link:
-            Y_link:
-              Z_link:
-                tool0:
-                  lj_v7200_optical_frame:
-                    {}
-                  torch:
-                    {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:

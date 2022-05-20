@@ -259,12 +259,13 @@ Updated on 6 May 2022,   The Origin of the sensor_optical_frame was adjusted.
   </joint>
 
 <link name="lj_v7200_optical_frame" />
+<!--
 <joint name="optical_frame" type="fixed">
   <origin xyz="0 0 0" rpy="0 0 0"/>
   <parent link="lj_v7200_optical_frame"/>
   <child link="lj_v7200_optical_frame"/>
 </joint>
-
+-->
 <!--
   The tool0 to keyence_optical_frame fixed Joint
 -->

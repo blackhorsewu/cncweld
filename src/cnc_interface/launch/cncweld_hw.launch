@@ -10,9 +10,13 @@
       <!--Axis acceleration values in mm/s^2  -->
       <param name="acceleration" type="int"    value="1000" /> 
       <!--Workable volume in mm  -->
-      <param name="x_max" type="int" value="650" />  
-      <param name="y_max" type="int" value="150" />  
-      <param name="z_max" type="int" value="50" /> 
+      <param name="x_min" type="int" value="0" />
+      <param name="y_min" type="int" value="0" />
+      <param name="z_min" type="int" value="-70" />
+
+      <param name="x_max" type="int" value="650" />
+      <param name="y_max" type="int" value="150" />
+      <param name="z_max" type="int" value="0" />
       <!-- Speed values in mm/min -->
       <!-- 5mm/sec = 300mm/min-->
       <param name="default_speed" type="int" value="1000" /> 

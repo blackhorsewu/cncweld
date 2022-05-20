@@ -35,9 +35,12 @@ def main():
 	port          = rospy.get_param('cnc_interface/port')
 	baud          = rospy.get_param('cnc_interface/baudrate')
 	acc           = rospy.get_param('cnc_interface/acceleration')  
+	min_x 		  = rospy.get_param('cnc_interface/x_min')   
+	min_y 		  = rospy.get_param('cnc_interface/y_min')   
+	min_z 		  = rospy.get_param('cnc_interface/z_min')
 	max_x 		  = rospy.get_param('cnc_interface/x_max')   
 	max_y 		  = rospy.get_param('cnc_interface/y_max')   
-	max_z 		  = rospy.get_param('cnc_interface/x_max')
+	max_z 		  = rospy.get_param('cnc_interface/z_max')
 	default_speed = rospy.get_param('cnc_interface/default_speed')   
 	speed_x  	  = rospy.get_param('cnc_interface/x_max_speed')
 	speed_y  	  = rospy.get_param('cnc_interface/y_max_speed')
@@ -46,17 +49,21 @@ def main():
 	steps_y 	  = rospy.get_param('cnc_interface/y_steps_mm')
 	steps_z 	  = rospy.get_param('cnc_interface/z_steps_mm')
 
-	cnc_obj.startup(port,baud,acc,max_x,max_y,max_z,default_speed,speed_x,speed_y,
+	cnc_obj.startup(port,baud,acc,min_x,min_y,min_z,max_x,max_y,max_z,default_speed,speed_x,speed_y,
 					speed_z,steps_x,steps_y,steps_z)
 	rate = rospy.Rate(10)
 
 	while not rospy.is_shutdown():
+		# get the necessary data and put them into ROS format
 		status     = cnc_obj.getStatus()
 		cnc_pose   = cnc_obj.getTwist()
 		ros_status = String(status)
+		# After the data is formatted and ready,
+		# then publish them.
 		pos_pub.publish(cnc_pose)
 		status_pub.publish(ros_status)
-		rate.sleep()
+		# go around this loop in the right speed of 10 Hz
+		rate.sleep() 
 
 	rospy.spin()
 
