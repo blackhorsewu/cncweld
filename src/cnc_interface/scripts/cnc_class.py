@@ -73,7 +73,7 @@ class cnc:
 		self.s = serial.Serial(self.port, self.baudrate)
 		# set movement to Absolut coordinates
 		self.ensureMovementMode(True)
-		# set status report Work Position
+		# set status report Work Position; the $10 setting of GRBL
 		self.setReportFormat()
 		# start homing procedure
 		self.home()
