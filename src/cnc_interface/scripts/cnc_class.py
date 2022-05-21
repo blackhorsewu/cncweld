@@ -73,11 +73,17 @@ class cnc:
 		self.s = serial.Serial(self.port, self.baudrate)
 		# set movement to Absolut coordinates
 		self.ensureMovementMode(True)
+		# set status report Work Position
+		self.setReportFormat()
 		# start homing procedure
 		self.home()
 		# set the current position as the origin (GRBL sometimes starts with z not 0)
 		self.setOrigin()	
 
+	def setReportFormat(self):
+		# set status to report Machine Position or Work Position
+		self.s.write(str.encode("$10=0\n"))
+	
 	def shutdown(self):
 		# close the serial connection
 		self.s.close()
@@ -128,33 +134,35 @@ class cnc:
 	
 	def moveTo(self, x=None, y=None, z=None, speed=None, blockUntilComplete=True):
 		""" move to an absolute position, and return when movement completes """
+		print("Come into moveTo")
 		if not self.idle: return
 		if x is None and y is None and z is None: return
 		if speed is None: speed = self.defaultSpeed
-		
+		print("Going to start moveTo")
 		self.ensureMovementMode(absoluteMode = True)
 		
 		gcode = 'G0'
 		letters = 'XYZ'
 		pos = (x, y, z)
 		newpos = list(self.pos)
-		
+		print("Here ******************************** 2 *********************")
 		#create gcode string and update position list for each argument that isn't None
 		for i in range(3):
 			if pos[i] is not None:
 				#check against self.limits
 				# Victor Wu added lo_limits on 20 May 2022, z needs to go -ve
-				if pos[i] < self.lo_limits[i] or pos[i] >= self.up_limits[i]:
+				if pos[i] < self.lo_limits[i] or pos[i] > self.up_limits[i]:
 					# if position is outside the movement range, ignore
 					return
 				gcode += ' ' + letters[i] + str(pos[i])
 				newpos[i] = pos[i]
-
+		print("************************************* 3 ***********************")
 		gcode += ' F' + str(speed)
 		gcode += '\n'
 		try:
 			self.s.write(str.encode(gcode))
 			self.s.readline()
+			print("********************************* 4 *************************")
 			# we may not want to change the position TO the destination yet.
 			# self.pos = newpos 
 		except:
@@ -240,12 +248,15 @@ class cnc:
 #		while True:
 		try: 
 			status = self.s.readline()
-			# print(status)
+			print(status)
 			if status is not None:
 				try:
 					matches = self.__pos_pattern__.findall(status)
-					if len(matches[1]) == 3:
-						self.pos = list(matches[1])
+					print(matches)
+#					if len(matches[1]) == 3:
+					if len(matches[0]) == 3:
+#						self.pos = list(matches[1])
+						self.pos = list(matches[0])
 						print(status)
 					return status
 				except IndexError:
