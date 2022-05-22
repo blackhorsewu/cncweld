@@ -4,11 +4,13 @@
   <param 
     name="robot_description" 
     command="xacro $(find cnc_description)/urdf/cnc.xacro" />
-
+<!-- Use the joint state publisher specially written for CNC -->
   <node
     name="joint_state_publisher"
     pkg="joint_state_publisher"
     type="joint_state_publisher" output="screen"/>
+
+<!-- Use the ROS default joint state publisher with GUI -->
 <!--
   <node
     name="joint_state_publisher_gui"
