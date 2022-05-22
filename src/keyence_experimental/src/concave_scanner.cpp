@@ -318,7 +318,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
     listener.waitForTransform(world_frame,
                               ros_cloud->header.frame_id,
                               ros::Time::now(),
-                              ros::Duration(0.25));
+                              ros::Duration(0.3));
     listener.lookupTransform (world_frame,
                               ros_cloud->header.frame_id,
                               ros::Time(0),
@@ -354,7 +354,8 @@ int main(int argc, char** argv)
   std::string cloud_topic;
   
   cloud_topic = "profiles"; // The cloud published by the Keyence Driver
-  world_frame = "world";
+  // world_frame = "world";
+  world_frame = "base_link";
   scanner_frame = "lj_v7200_optical_frame";
 
   // set up profile cloud publisher for PCL point clouds

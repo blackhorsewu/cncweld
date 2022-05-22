@@ -15,19 +15,6 @@ Updated on 6 May 2022,   The Origin of the sensor_optical_frame was adjusted.
 
 <robot name="cncweld" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <link name="world" />
-
-  <joint
-    name="world_base_link"
-    type="fixed">
-    <origin
-      xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-    <parent
-      link="world" />
-    <child
-      link="base_link" />
-  </joint>
-
 <!--
   There are 2 rails for the base link. The base_link.STL has already
   included 2 rails in it.
