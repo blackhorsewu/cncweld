@@ -145,7 +145,8 @@ class cnc:
 		letters = 'XYZ'
 		pos = (x, y, z)
 		newpos = list(self.pos)
-		print("Here ******************************** 2 *********************")
+		# newly added by V Wu 22 May 2022
+		gcode += ' F' + str(speed)
 		#create gcode string and update position list for each argument that isn't None
 		for i in range(3):
 			if pos[i] is not None:
@@ -156,13 +157,13 @@ class cnc:
 					return
 				gcode += ' ' + letters[i] + str(pos[i])
 				newpos[i] = pos[i]
-		print("************************************* 3 ***********************")
-		gcode += ' F' + str(speed)
+		# gcode += ' F' + str(speed)
+		print("*******************************************************")
+		print(gcode)
 		gcode += '\n'
 		try:
 			self.s.write(str.encode(gcode))
 			self.s.readline()
-			print("********************************* 4 *************************")
 			# we may not want to change the position TO the destination yet.
 			# self.pos = newpos 
 		except:
