@@ -330,7 +330,6 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
   }
 
   sensor_msgs::PointCloud2 transformed_ros_cloud;
-  //pcl_ros::transformPointCloud("world",
   pcl_ros::transformPointCloud(world_frame,
                                stransform,
                                *ros_cloud,
