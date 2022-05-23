@@ -141,7 +141,7 @@ class cnc:
 		print("Going to start moveTo")
 		self.ensureMovementMode(absoluteMode = True)
 		
-		gcode = 'G0'
+		gcode = 'G01'
 		letters = 'XYZ'
 		pos = (x, y, z)
 		newpos = list(self.pos)
