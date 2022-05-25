@@ -83,8 +83,11 @@ Updated on 6 May 2022,   The Origin of the sensor_optical_frame was adjusted.
   <joint
     name="base_link_X_link_joint"
     type="prismatic">
+<!--
     <origin
-      xyz="0.0 0.0 0.083" rpy="0.0 0.0 0.0" />
+      xyz="0.0 0.0 0.083" rpy="0.0 0.0 0.0" /> -->
+    <origin
+      xyz="0.0 0.0 0.0998" rpy="0.0 0.0 0.0" />
     <parent
       link="base_link" />
     <child
