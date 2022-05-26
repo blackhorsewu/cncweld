@@ -33,7 +33,8 @@ using namespace std;
 const static double KEYENCE_INFINITE_DISTANCE_VALUE_SI = -999.9990 / 1e3;
 const static double KEYENCE_INFINITE_DISTANCE_VALUE_SI2 = -999.9970 / 1e3;
 
-ros::Publisher pub; // publisher for the cumulated cloud; it will be initialised in main
+ros::Publisher pub;     // publisher for the cumulated cloud; it will be initialised in main
+ros::Publisher mkr_pub; // publisher for the deepest points; it will be initialised in main
 
 pcl::PointCloud<pcl::PointXYZ> pcl_Y_cloud; // cumulated cloud
 
@@ -54,6 +55,24 @@ int file_no = 0;
 // Point index of first and last valid points in a scan line
 int valid_begin, valid_end;
 
+void publish_deepest_pt(pcl::PointXYZ)
+{
+  // setup deepest point Marker message
+  visualization_msgs::Marker dpst_pt; 
+  dpst_pt.header.frame_id = world_frame;
+  dpst_pt.header.stamp = ros::Time();
+  fillers.ns = "fillers";
+  fillers.action = visualization_msgs::Marker::ADD;
+  fillers.pose.orientation.w = 1.0; // Quarternion
+  fillers.id = 0;
+  fillers.type = visualization_msgs::Marker::LINE_LIST;
+  fillers.scale.x = 0.0001; // so the line is shown as of 0.1mm wide
+  fillers.color.r = 1;   // in red
+  fillers.color.a = 1;   // 
+}
+
+geometry_msgs::Point points;
+
 /*
  * Find the deepest point of the input scan line (a cross section of the groove).
  */
@@ -66,6 +85,8 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
   double minZ = 100.0;
   double zz = 0.0;
 
+  int dpst = 0;
+
   for (int i = 0; i < (cloudSize); ++i) // Neglect the first 50 points
   {
     zz = pointcloud[i].z;
@@ -73,19 +94,18 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
     if ((zz != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (zz != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
           && (zz != std::numeric_limits<double>::infinity()))
     {   // then this is a piece of normal point
-      if (zz < minZ) minZ = zz;
+      if (zz < minZ)
+      {
+        minZ = zz;
+        dpst = i;
+      }
     }
   }
 
   ROS_INFO("Minimum depth: %.2f mm; cloud size: %d ", minZ*1000, cloudSize);
 
-/* Do not write to any file yet
-  if (write_X_file)
-  {
-    Xfile.close();
-    file_no++;
-  }
-*/
+  publish_deepest_pt(pointcloud[dpst]);
+
 }
 
 /*
@@ -146,6 +166,9 @@ int main(int argc, char** argv)
 
   // set up profile cloud publisher for PCL point clouds
   pub = nh.advertise<pcl::PointCloud<pcl::PointXYZ>>("Y_profiles", 1);
+
+  // set up deepest point marker publisher
+  mkr_pub = nh.advertise<visualization_msgs::Marker>("deepest_point", 0);
 
   /*
    * Listen for Point Cloud - profile from Laser Scanner
