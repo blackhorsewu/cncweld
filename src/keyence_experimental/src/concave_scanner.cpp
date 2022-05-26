@@ -1,3 +1,24 @@
+/*********1*********2*********3*********4*********5*********6*********7**********
+ *                                                                              *
+ *     Chinese National Engineering Research Centre for Steel Construction      *
+ *                                (Hong Kong Branch)                            *
+ *                                                                              *
+ * This file, concave_scanner.cpp tries to work out the welding groove from a   *
+ * laser scanned point cloud. The point cloud is published by the Keyence Driver*
+ * node, which was downloaded from ROS Industrial.                              *
+ * 
+ * This program subscribes to the topic: /profiles published by Keyence Driver  *
+ * node. It then concantenate these individual point clouds of a scan line into *
+ * a cumulated surface point cloud. This point cloud is then published via the  *
+ * topic: /Y_profiles. At the same time, this program also works out the deepest*
+ * point of every individual scan line and publish these points as Visualization*
+ * markers. They are then visualized in RViz. These points will then be the way *
+ * points of the welding path the CNC Welding will follow.                      *
+ *                                                                              *
+ * Author: Victor Wai Hung WU                                                   *
+ * Date: 26 May 2022.                                                           *
+ *                                                                              *
+ ********************************************************************************/
 #include <ros/ros.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
@@ -35,6 +56,7 @@ const static double KEYENCE_INFINITE_DISTANCE_VALUE_SI2 = -999.9970 / 1e3;
 
 ros::Publisher pub;     // publisher for the cumulated cloud; it will be initialised in main
 ros::Publisher mkr_pub; // publisher for the deepest points; it will be initialised in main
+int marker_id = 0;
 
 pcl::PointCloud<pcl::PointXYZ> pcl_Y_cloud; // cumulated cloud
 
@@ -55,20 +77,30 @@ int file_no = 0;
 // Point index of first and last valid points in a scan line
 int valid_begin, valid_end;
 
-void publish_deepest_pt(pcl::PointXYZ)
+void publish_deepest_pt(pcl::PointXYZ deepest_point)
 {
   // setup deepest point Marker message
   visualization_msgs::Marker dpst_pt; 
   dpst_pt.header.frame_id = world_frame;
   dpst_pt.header.stamp = ros::Time();
-  fillers.ns = "fillers";
-  fillers.action = visualization_msgs::Marker::ADD;
-  fillers.pose.orientation.w = 1.0; // Quarternion
-  fillers.id = 0;
-  fillers.type = visualization_msgs::Marker::LINE_LIST;
-  fillers.scale.x = 0.0001; // so the line is shown as of 0.1mm wide
-  fillers.color.r = 1;   // in red
-  fillers.color.a = 1;   // 
+  dpst_pt.ns = "dpst_pt";
+  dpst_pt.action = visualization_msgs::Marker::ADD;
+  dpst_pt.pose.orientation.w = 1.0; // Quarternion
+  dpst_pt.id = marker_id++; // This should be incremented by an number counting number of points published
+  dpst_pt.type = visualization_msgs::Marker::CUBE;
+  dpst_pt.scale.x = 0.0001; // so the line is shown as of 0.1mm wide
+  dpst_pt.scale.y = 0.0001;
+  dpst_pt.scale.z = 0.0001;
+  dpst_pt.color.r = 1;   // in red
+  dpst_pt.color.a = 1;   //
+
+  // set the location of the deepest point
+  dpst_pt.pose.position.x = deepest_point.x;
+  dpst_pt.pose.position.y = deepest_point.y;
+  dpst_pt.pose.position.z = deepest_point.z;
+
+  // publish the point as a marker in RViz
+  mkr_pub.publish(dpst_pt);
 }
 
 geometry_msgs::Point points;
@@ -79,8 +111,6 @@ geometry_msgs::Point points;
 void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
 {
   int cloudSize = pointcloud.size();
-  //  double Z[cloudSize], avgz[cloudSize], avgdavgz[cloudSize], avgddavgz[cloudSize];
-  //  double davgz[cloudSize], davgdavgz[cloudSize];
 
   double minZ = 100.0;
   double zz = 0.0;
