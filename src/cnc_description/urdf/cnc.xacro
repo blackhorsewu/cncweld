@@ -11,9 +11,25 @@ Updated on 22 April 2022 the turn table and the torch and laser scanner are spli
                          scanner are held together and becomes the end effector and
                          is called the torch.
 Updated on 6 May 2022,   The Origin of the sensor_optical_frame was adjusted.
+updated on 26 May 2022,  A world link is added and a world to base_link fixed joint
+                         added. The is necessary for the base_link is above the bottom
+                         of the Device and fixed joint added is to lift the whole 
+                         thing up by 16.8mm.
 -->
 
 <robot name="cncweld" xmlns:xacro="http://ros.org/wiki/xacro">
+
+<link name="world" />
+
+<!--
+  The world to base link fixed Joint
+-->
+  <joint name="world_base_link" type="fixed">
+<!--    <origin xyz="0.0 0.0 0.0168" rpy="0.0 0.0 0.0" /> -->
+    <origin xyz="0.0 0.0 0.02" rpy="0.0 0.0 0.0" />
+    <parent link="world" />
+    <child  link="base_link" />
+  </joint>
 
 <!--
   There are 2 rails for the base link. The base_link.STL has already
@@ -83,11 +99,12 @@ Updated on 6 May 2022,   The Origin of the sensor_optical_frame was adjusted.
   <joint
     name="base_link_X_link_joint"
     type="prismatic">
+
+    <origin
+      xyz="0.0 0.0 0.083" rpy="0.0 0.0 0.0" />
 <!--
     <origin
-      xyz="0.0 0.0 0.083" rpy="0.0 0.0 0.0" /> -->
-    <origin
-      xyz="0.0 0.0 0.0998" rpy="0.0 0.0 0.0" />
+      xyz="0.0 0.0 0.0998" rpy="0.0 0.0 0.0" /> -->
     <parent
       link="base_link" />
     <child
@@ -136,8 +153,8 @@ Updated on 6 May 2022,   The Origin of the sensor_optical_frame was adjusted.
     <origin
       xyz="0.08 -0.058 -0.041" rpy="0.0 0.0 0.0" />
     -->
-    <origin
-      xyz="0.08 -0.10 -0.041" rpy="0.0 0.0 0.0" />
+<!--    <origin xyz="0.08 -0.10 -0.041" rpy="0.0 0.0 0.0" /> -->
+    <origin xyz="0.08 -0.10 -0.05" rpy="0.0 0.0 0.0" />
     <parent
       link="X_link" />
     <child
@@ -262,7 +279,10 @@ Updated on 6 May 2022,   The Origin of the sensor_optical_frame was adjusted.
   The tool0 to keyence_optical_frame fixed Joint
 -->
   <joint name="tool0_lj_v7200_optical_frame" type="fixed">
+<!--
     <origin xyz="0.1083 0.000005 -0.19027" rpy="-0.471238898038469 0.0 ${-pi/2.0}" />
+-->
+    <origin xyz="0.1083 0.000005 -0.18527" rpy="-0.471238898038469 0.0 ${-pi/2.0}" />
     <parent
       link="tool0" />
     <child

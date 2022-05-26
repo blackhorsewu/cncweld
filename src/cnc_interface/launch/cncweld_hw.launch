@@ -12,7 +12,7 @@
       <!--Workable volume in mm  -->
       <param name="x_min" type="int" value="0" />
       <param name="y_min" type="int" value="0" />
-      <param name="z_min" type="int" value="-70" />
+      <param name="z_min" type="int" value="-90" />
 
       <param name="x_max" type="int" value="650" />
       <param name="y_max" type="int" value="150" />

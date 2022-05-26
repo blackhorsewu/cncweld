@@ -63,10 +63,10 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
   //  double Z[cloudSize], avgz[cloudSize], avgdavgz[cloudSize], avgddavgz[cloudSize];
   //  double davgz[cloudSize], davgdavgz[cloudSize];
 
-  double minZ = 0.0;
+  double minZ = 100.0;
   double zz = 0.0;
 
-  for (int i = 0; i < (cloudSize - 50); ++i) // Neglect the first 50 points
+  for (int i = 0; i < (cloudSize); ++i) // Neglect the first 50 points
   {
     zz = pointcloud[i].z;
     // Check to make sure the point is a valid point, some points may be invalid
@@ -77,7 +77,7 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
     }
   }
 
-  ROS_INFO("Minimum depth: %.2f mm", zz*1000);
+  ROS_INFO("Minimum depth: %.2f mm; cloud size: %d ", minZ*1000, cloudSize);
 
 /* Do not write to any file yet
   if (write_X_file)
@@ -140,8 +140,8 @@ int main(int argc, char** argv)
   std::string cloud_topic;
   
   cloud_topic = "profiles"; // The cloud published by the Keyence Driver
-  // world_frame = "world";
-  world_frame = "base_link";
+  world_frame = "world";
+  // world_frame = "base_link";
   scanner_frame = "lj_v7200_optical_frame";
 
   // set up profile cloud publisher for PCL point clouds
