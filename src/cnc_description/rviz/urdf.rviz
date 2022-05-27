@@ -4,8 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /RobotModel1
         - /RobotModel1/Links1
         - /RobotModel1/Links1/X_link1
         - /RobotModel1/Links1/X_link1/Position1
@@ -14,14 +12,8 @@ Panels:
         - /RobotModel1/Links1/torch1/Position1
         - /RobotModel1/Links1/world1
         - /RobotModel1/Links1/world1/Position1
-        - /TF1
         - /TF1/Frames1
-        - /TF1/Frames1/torch1
-        - /TF1/Frames1/torch1/Position1
-        - /TF1/Frames1/torch1/Relative Position1
-        - /TF1/Tree1/world1
-        - /TF1/Tree1/world1/base_link1
-        - /TF1/Tree1/world1/base_link1/X_link1
+        - /Deepest points1
       Splitter Ratio: 0.6472222208976746
     Tree Height: 833
   - Class: rviz/Selection
@@ -42,7 +34,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Front line
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -127,47 +119,19 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        X_link:
-          Value: true
-        Y_link:
-          Value: true
-        Z_link:
-          Value: true
-        base_link:
-          Value: true
-        lj_v7200_frame:
-          Value: true
-        lj_v7200_optical_frame:
-          Value: false
-        tool0:
-          Value: true
-        torch:
-          Value: true
-        world:
-          Value: true
       Marker Scale: 0.30000001192092896
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          base_link:
-            X_link:
-              Y_link:
-                Z_link:
-                  tool0:
-                    lj_v7200_optical_frame:
-                      lj_v7200_frame:
-                        {}
-                    torch:
-                      {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -184,7 +148,7 @@ Visualization Manager:
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
-      Name: PointCloud2
+      Name: Front line
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
@@ -212,7 +176,7 @@ Visualization Manager:
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
-      Name: PointCloud2
+      Name: Cumulated lines
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
@@ -223,6 +187,14 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /deepest_point
+      Name: Deepest points
+      Namespaces:
+        dpst_pt: true
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
@@ -252,25 +224,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.8648399114608765
+      Distance: 1.03304922580719
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.45052656531333923
-        Y: -0.061645954847335815
-        Z: 0.019997311756014824
+        X: 0.6430312395095825
+        Y: 0.09263896197080612
+        Z: -0.11018167436122894
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: -0.05020132288336754
+      Pitch: 0.5847982168197632
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 3.1033904552459717
+      Yaw: 5.403416633605957
     Saved:
       - Class: rviz/Orbit
         Distance: 1.2575963735580444

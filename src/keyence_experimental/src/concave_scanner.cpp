@@ -54,8 +54,12 @@ using namespace std;
 const static double KEYENCE_INFINITE_DISTANCE_VALUE_SI = -999.9990 / 1e3;
 const static double KEYENCE_INFINITE_DISTANCE_VALUE_SI2 = -999.9970 / 1e3;
 
-ros::Publisher pub;     // publisher for the cumulated cloud; it will be initialised in main
-ros::Publisher mkr_pub; // publisher for the deepest points; it will be initialised in main
+// the publishers declared here to be global and used in functions,
+// will be initialised in main
+ros::Publisher pub;     // publisher for the cumulated cloud
+ros::Publisher mkr_pub; // publisher for the deepest points
+ros::Publisher pos_pub; // publisher for the position to move to
+
 int marker_id = 0;
 
 pcl::PointCloud<pcl::PointXYZ> pcl_Y_cloud; // cumulated cloud
@@ -65,6 +69,16 @@ std::string sensor_host;
 std::string scanner_frame;
 std::string world_frame;
 
+// CNC Machine home offsets in mm
+// Meaning, when the CNC Machine is homed, ROS reports this position
+double home_off_x = 320.0;
+double home_off_y = -100.0;
+double home_off_z = 93.0;
+
+double start_x = 12.17; // mm
+double x_step = 2.0; // mm
+
+/* Declarations for writing to files
 bool write_Y_file = false; // write the whole scan brief data to a file
 bool write_X_file = false; // write data of each scan line to a file
 
@@ -73,7 +87,8 @@ ofstream Xfile;
 
 int line_no = 0;
 int file_no = 0;
-  
+*/
+
 // Point index of first and last valid points in a scan line
 int valid_begin, valid_end;
 
@@ -87,10 +102,10 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
   dpst_pt.action = visualization_msgs::Marker::ADD;
   dpst_pt.pose.orientation.w = 1.0; // Quarternion
   dpst_pt.id = marker_id++; // This should be incremented by an number counting number of points published
-  dpst_pt.type = visualization_msgs::Marker::CUBE;
-  dpst_pt.scale.x = 0.0001; // so the line is shown as of 0.1mm wide
-  dpst_pt.scale.y = 0.0001;
-  dpst_pt.scale.z = 0.0001;
+  dpst_pt.type = visualization_msgs::Marker::SPHERE;
+  dpst_pt.scale.x = 0.001; // so the line is shown as of 0.1mm wide
+  dpst_pt.scale.y = 0.001;
+  dpst_pt.scale.z = 0.001;
   dpst_pt.color.r = 1;   // in red
   dpst_pt.color.a = 1;   //
 
@@ -106,33 +121,80 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
 geometry_msgs::Point points;
 
 /*
+ * Publish a Twist topic to cnc_interface to move to the specified position.
+ *
+ * It should not be done in this way, but just do it for the time being to test
+ * out the idea. When it works, redo the cnc_interface and integrate it in here,
+ * concave_scanner.
+ * 
+ * Actually, the whole thing must be carefully re-think and arrange it in a
+ * more logical structure.
+ * 
+ * When moving the CNC Device, there should also be a specified speed.
+ */
+void move_scanner_to(double x, double y, double z)
+{
+  geometry_msgs::Twist position;
+
+  position.linear.x = x - home_off_x - start_x + x_step; // scanner head offset
+  position.linear.y = y - home_off_y;
+  position.linear.z = 25 - home_off_z; // because the z is move in inverse direction
+
+  ROS_INFO("Position: x: %.2f, y: %.2f, z: %.2f", position.linear.x, position.linear.y, position.linear.z);
+  pos_pub.publish(position);
+}
+
+void move_torch_to(double x, double y, double z)
+{
+  geometry_msgs::Twist position;
+
+  position.linear.x = x + home_off_x;
+  position.linear.y = y + home_off_y;
+  position.linear.z = z - home_off_z;
+
+  ROS_INFO("Position: x: %.2f, y: %.2f, z: %.2f", position.linear.x, position.linear.y, position.linear.z);
+  // pos_pub.publish(position);
+}
+
+/*
  * Find the deepest point of the input scan line (a cross section of the groove).
+ * move to that point.
  */
 void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
 {
   int cloudSize = pointcloud.size();
 
   double minZ = 100.0;
-  double zz = 0.0;
+  double x = 0.0;
+  double y = 0.0;
+  double z = 0.0;
 
   int dpst = 0;
 
   for (int i = 0; i < (cloudSize); ++i) // Neglect the first 50 points
   {
-    zz = pointcloud[i].z;
+    z = pointcloud[i].z;
     // Check to make sure the point is a valid point, some points may be invalid
-    if ((zz != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (zz != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
-          && (zz != std::numeric_limits<double>::infinity()))
+    if ((z != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (z != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
+          && (z != std::numeric_limits<double>::infinity()))
     {   // then this is a piece of normal point
-      if (zz < minZ)
+      if (z < minZ)
       {
-        minZ = zz;
+        minZ = z;
         dpst = i;
       }
     }
   }
 
-  ROS_INFO("Minimum depth: %.2f mm; cloud size: %d ", minZ*1000, cloudSize);
+  x = pointcloud[dpst].x * 1e3;
+  y = pointcloud[dpst].y * 1e3;
+  z = pointcloud[dpst].z * 1e3;
+
+  ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
+
+  move_scanner_to(x, y, z);
+  // There should be another one to move the torch to.
+  // The difference is the position in the z direction.
 
   publish_deepest_pt(pointcloud[dpst]);
 
@@ -140,6 +202,7 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
 
 /*
  * This handles one scan line, published by the scanner driver.
+ * Transform it to world coordinate, publish the concatenated point cloud so far.
  */
 void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
 {
@@ -175,7 +238,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
    */
   pcl::fromROSMsg(transformed_ros_cloud, pcl_cloud);
   pcl_Y_cloud.header.frame_id = pcl_cloud.header.frame_id; // cannot be done away with; must keep
-  pcl_Y_cloud += pcl_cloud;
+  pcl_Y_cloud += pcl_cloud; // concatenate the front line to the cumulated point cloud
   deepest_pt(pcl_cloud); // try to find the deepest point of this cross section
   pub.publish(pcl_Y_cloud);
 }
@@ -199,6 +262,9 @@ int main(int argc, char** argv)
 
   // set up deepest point marker publisher
   mkr_pub = nh.advertise<visualization_msgs::Marker>("deepest_point", 0);
+
+  // set up position publisher
+  pos_pub = nh.advertise<geometry_msgs::Twist>("/cnc_interface/position", 1);
 
   /*
    * Listen for Point Cloud - profile from Laser Scanner

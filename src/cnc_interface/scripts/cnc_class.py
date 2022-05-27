@@ -249,11 +249,11 @@ class cnc:
 #		while True:
 		try: 
 			status = self.s.readline()
-			print(status)
+			# print(status)
 			if status is not None:
 				try:
 					matches = self.__pos_pattern__.findall(status)
-					print(matches)
+					# print(matches)
 #					if len(matches[1]) == 3:
 					if len(matches[0]) == 3:
 #						self.pos = list(matches[1])

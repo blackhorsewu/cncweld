@@ -57,18 +57,18 @@ def main():
 
 	while not rospy.is_shutdown():
 		# get the necessary data and put them into ROS format
-		print("Beginning at top loop")
+		# print("Beginning at top loop")
 		status     = cnc_obj.getStatus()
-		print("Gotten status")
+		# print("Gotten status")
 		cnc_pose   = cnc_obj.getTwist()
-		print("Gotten position")
+		# print("Gotten position")
 		ros_status = String(status)
 		# After the data is formatted and ready,
 		# then publish them.
-		print("Going to publish position")
-		print(cnc_pose)
+		# print("Going to publish position")
+		# print(cnc_pose)
 		pos_pub.publish(cnc_pose)
-		print("Going to publish status")
+		# print("Going to publish status")
 		status_pub.publish(ros_status)
 		# go around this loop in the right speed of 10 Hz
 		rate.sleep() 
