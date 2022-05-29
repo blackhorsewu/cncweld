@@ -168,11 +168,13 @@ class cnc:
 			# self.pos = newpos 
 		except:
 			print("Serial port unavailable")
+		# wait until the move is completed before leaving
 		while True:
+			self.s.write(str.encode('?'))
 			response = self.s.readline()
 			print(response)
 			print("***********************************************")
-			if response.startswith('ok'): break
+			if response.startswith('<Idle'): break
 			# poll every 10 ms
 			time.sleep(.01)		
 
