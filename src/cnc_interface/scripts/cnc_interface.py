@@ -11,7 +11,7 @@ cnc_obj = cnc()
 def cmdCallback(msg):
 
 	rospy.loginfo(rospy.get_name() + ": " + str(msg))
-	print("Received command with position as below:")
+	print("************************************** Received command with position as below:")
 	print( msg.linear.x, msg.linear.y, msg.linear.z)
 	cnc_obj.moveTo(msg.linear.x, msg.linear.y, msg.linear.z, blockUntilComplete=True)
 	print("Finished moveTo")
@@ -53,7 +53,8 @@ def main():
 
 	cnc_obj.startup(port,baud,acc,min_x,min_y,min_z,max_x,max_y,max_z,default_speed,speed_x,speed_y,
 					speed_z,steps_x,steps_y,steps_z)
-	rate = rospy.Rate(10)
+	# rate = rospy.Rate(10)
+	rate = rospy.Rate(3.3)
 
 	while not rospy.is_shutdown():
 		# get the necessary data and put them into ROS format
@@ -61,7 +62,7 @@ def main():
 		status     = cnc_obj.getStatus()
 		# print("Gotten status")
 		cnc_pose   = cnc_obj.getTwist()
-		# print("Gotten position")
+		print("Gotten position")
 		ros_status = String(status)
 		# After the data is formatted and ready,
 		# then publish them.

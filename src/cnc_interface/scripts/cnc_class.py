@@ -99,7 +99,7 @@ class cnc:
 		cnc_pose.linear.x  = float(self.pos[0])
 		cnc_pose.linear.y  = float(self.pos[1])
 		cnc_pose.linear.z  = float(self.pos[2])
-		# this parameters are set to 0 as the cnc its a XYZ 3 DOF mechanism and doesnt need it
+		# this parameters are set to 0 as the cnc is a XYZ 3 DOF mechanism and doesnt need it
 		cnc_pose.angular.x = float(self.angular[0])
 		cnc_pose.angular.y = float(self.angular[1])
 		cnc_pose.angular.z = float(self.angular[2])
@@ -163,11 +163,19 @@ class cnc:
 		gcode += '\n'
 		try:
 			self.s.write(str.encode(gcode))
-			self.s.readline()
+			print("G-Code just sent.")
 			# we may not want to change the position TO the destination yet.
 			# self.pos = newpos 
 		except:
 			print("Serial port unavailable")
+		while True:
+			response = self.s.readline()
+			print(response)
+			print("***********************************************")
+			if response.startswith('ok'): break
+			# poll every 10 ms
+			time.sleep(.01)		
+
 
 	def moveRel(self, dx=None, dy=None, dz=None, speed=None, blockUntilComplete=True):
 		""" move a given distance, and return when movement completes

@@ -136,8 +136,8 @@ void move_scanner_to(double x, double y, double z)
 {
   geometry_msgs::Twist position;
 
-  position.linear.x = x - home_off_x - start_x + x_step; // scanner head offset
-  position.linear.y = y - home_off_y;
+  position.linear.x = home_off_x - x + start_x + x_step; // scanner head offset
+  position.linear.y = home_off_y - y; // 105/2
   position.linear.z = 25 - home_off_z; // because the z is move in inverse direction
 
   ROS_INFO("Position: x: %.2f, y: %.2f, z: %.2f", position.linear.x, position.linear.y, position.linear.z);
@@ -264,7 +264,7 @@ int main(int argc, char** argv)
   mkr_pub = nh.advertise<visualization_msgs::Marker>("deepest_point", 0);
 
   // set up position publisher
-  pos_pub = nh.advertise<geometry_msgs::Twist>("/cnc_interface/position", 1);
+  pos_pub = nh.advertise<geometry_msgs::Twist>("/cnc_interface/cmd", 1);
 
   /*
    * Listen for Point Cloud - profile from Laser Scanner
