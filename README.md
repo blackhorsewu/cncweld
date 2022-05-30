@@ -1,9 +1,9 @@
-# cncweld
+# CNCWELD
 
-## <p align="center"> Chinese National Engineering Research Centre for Steel Construction (Hong Kong Branch) </p>
-## <p align="center"> 国家钢结构工程技术研究中心 （香港分中心）</p>
+# <p align="center"> Chinese National Engineering Research Centre for Steel Construction (Hong Kong Branch) </p>
+# <p align="center"> 国家钢结构工程技术研究中心 （香港分中心）</p>
 
-### Introduction
+## Introduction
 
 This project tries to use a CNC Mechanism with 4 degrees of freedom (dof) to do autonomous Gas Metal Arc Welding (GMAW).
 
@@ -17,7 +17,7 @@ When the scanning is completed, users can edit and even pick and choose whicheve
 
 After the way-points of the welding path is confirmed, the CNC Mechanism will start welding from either end as instructed by the user.
 
-### ROS
+## ROS
 
 This project is built on ROS. ROS has its structures. Every project has a *work space*. In side the work space, there is a `src` folder. 
 
@@ -27,9 +27,9 @@ Before [ROS](http://wiki.ros.org/melodic/Installation/Ubuntu) can be used, it mu
 
 Each model of a ROS project is called a *package* inside the top level `src` of the project. Every package must have its own `CMakeLists.txt` and `package.xml` detailing how the package should be built and all its *dependences*. Each package should also has its own `src` folder, if it is in C++, or `script` folder if it is in *python*.
 
-### Modules
+## Modules
 
-#### 1. CNC Description
+### 1. CNC Description
 
 To control the CNC mechanism, it is necessary to build a model of it. ROS uses the Universal Robot Description Format (URDF) to describe robots. The CNC mechanism used in this project is a kind of robot, with 3 *prismatic* joints for the X, Y, and Z axes and a *rovolute* joint for the *A* axis. In CNC terms, the *A* axis is the rotating axis that rotates about the X axis. Therefore the *welding torch* can swing from side to side of a welding groove.
 
