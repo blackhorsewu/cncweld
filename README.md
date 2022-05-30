@@ -33,13 +33,15 @@ Each model of a ROS project is called a *package* inside the top level `src` of 
 
 To control the CNC mechanism, it is necessary to build a model of it. ROS uses the Universal Robot Description Format (URDF) to describe robots. The CNC mechanism used in this project is a kind of robot, with 3 *prismatic* joints for the X, Y, and Z axes and a *rovolute* joint for the *A* axis. In CNC terms, the *A* axis is the rotating axis that rotates about the X axis. Therefore the *welding torch* can swing from side to side of a welding groove.
 
+A picture of RViz showing the CNC mechanism should be inserted here.
+
 ### 2. GRBL on Arduino and the CNC mechanism
 
 GRBL is one of the very popular *firmware* running on *Arduino* *UNO* or *Mega 2650* for driving CNC Devices, especially hobbist 3D printers.
 
 CNCWELD uses GRBL to drive its CNC mechanism.
 
-
+Pictures of the stepper motors, drivers, lead screws, limit switches and the Arduino should be inserted here.
 
 
 
