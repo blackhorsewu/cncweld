@@ -1,7 +1,7 @@
-# CNCWELD
+## <p align="center"> Chinese National Engineering Research Centre for Steel Construction (Hong Kong Branch) </p>
+## <p align="center"> 国家钢结构工程技术研究中心 （香港分中心）</p>
 
-# <p align="center"> Chinese National Engineering Research Centre for Steel Construction (Hong Kong Branch) </p>
-# <p align="center"> 国家钢结构工程技术研究中心 （香港分中心）</p>
+# CNCWELD
 
 ## Introduction
 
