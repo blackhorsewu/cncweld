@@ -75,8 +75,10 @@ double home_off_x = 320.0;
 double home_off_y = -100.0;
 double home_off_z = 93.0;
 
-double start_x = 12.17; // mm
-double x_step = 2.0; // mm
+double target_x = 0.0; // mm
+
+double start_x = -0.85; // mm
+double x_step = 30.0; // mm
 
 /* Declarations for writing to files
 bool write_Y_file = false; // write the whole scan brief data to a file
@@ -103,9 +105,9 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
   dpst_pt.pose.orientation.w = 1.0; // Quarternion
   dpst_pt.id = marker_id++; // This should be incremented by an number counting number of points published
   dpst_pt.type = visualization_msgs::Marker::SPHERE;
-  dpst_pt.scale.x = 0.001; // so the line is shown as of 0.1mm wide
-  dpst_pt.scale.y = 0.001;
-  dpst_pt.scale.z = 0.001;
+  dpst_pt.scale.x = 0.003; // so the line is shown as of 0.1mm wide
+  dpst_pt.scale.y = 0.003;
+  dpst_pt.scale.z = 0.003;
   dpst_pt.color.r = 1;   // in red
   dpst_pt.color.a = 1;   //
 
@@ -136,12 +138,31 @@ void move_scanner_to(double x, double y, double z)
 {
   geometry_msgs::Twist position;
 
-  position.linear.x = home_off_x - x + start_x + x_step; // scanner head offset
-  position.linear.y = home_off_y - y; // 105/2
-  position.linear.z = 25 - home_off_z; // because the z is move in inverse direction
+  position.linear.x = x - home_off_x - start_x; // scanner head offset - start_x 
 
-  ROS_INFO("Position: x: %.2f, y: %.2f, z: %.2f", position.linear.x, position.linear.y, position.linear.z);
-  pos_pub.publish(position);
+  if (y <= home_off_y )
+  {
+    position.linear.y = 0;
+  }
+  else
+  {
+    position.linear.y = y - home_off_y;
+  }
+
+  position.linear.z = 50 - home_off_z; // because the z moves in reverse direction
+
+  ROS_INFO("Position: x: %.3f", position.linear.x);
+  ROS_INFO("Old Target_x: x: %.3f", target_x);
+
+  if ((position.linear.x <= 0.0) || (position.linear.x >= (target_x - 0.25))) // reached target, work for next target
+  {
+    if (target_x <= 0) target_x = x_step; else target_x = position.linear.x + x_step;
+    ROS_INFO("New Target_x: x: %.3f", target_x);
+    position.linear.x = target_x;
+    pos_pub.publish(position);
+    ROS_INFO("Target x: %.3f, y: %.3f, z: %.3f", position.linear.x, position.linear.y, position.linear.z );
+    ROS_INFO("Command published. ******************************");
+  }
 }
 
 void move_torch_to(double x, double y, double z)

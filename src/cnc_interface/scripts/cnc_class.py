@@ -134,11 +134,11 @@ class cnc:
 	
 	def moveTo(self, x=None, y=None, z=None, speed=None, blockUntilComplete=True):
 		""" move to an absolute position, and return when movement completes """
-		print("Come into moveTo")
+		# print("Come into moveTo")
 		if not self.idle: return
 		if x is None and y is None and z is None: return
 		if speed is None: speed = self.defaultSpeed
-		print("Going to start moveTo")
+		# print("Going to start moveTo")
 		self.ensureMovementMode(absoluteMode = True)
 		
 		gcode = 'G01'
@@ -158,17 +158,18 @@ class cnc:
 				gcode += ' ' + letters[i] + str(pos[i])
 				newpos[i] = pos[i]
 		# gcode += ' F' + str(speed)
-		print("*******************************************************")
-		print(gcode)
+		# print("*******************************************************")
+		# print(gcode)
 		gcode += '\n'
 		try:
 			self.s.write(str.encode(gcode))
-			print("G-Code just sent.")
+			# print("G-Code just sent.")
 			# we may not want to change the position TO the destination yet.
 			# self.pos = newpos 
 		except:
 			print("Serial port unavailable")
 		# wait until the move is completed before leaving
+		"""
 		while True:
 			self.s.write(str.encode('?'))
 			response = self.s.readline()
@@ -177,7 +178,7 @@ class cnc:
 			if response.startswith('<Idle'): break
 			# poll every 10 ms
 			time.sleep(.01)		
-
+		"""
 
 	def moveRel(self, dx=None, dy=None, dz=None, speed=None, blockUntilComplete=True):
 		""" move a given distance, and return when movement completes

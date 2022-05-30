@@ -15,7 +15,7 @@
       <param name="z_min" type="int" value="-90" />
 
       <param name="x_max" type="int" value="650" />
-      <param name="y_max" type="int" value="150" />
+      <param name="y_max" type="int" value="200" />
       <param name="z_max" type="int" value="0" />
       <!-- Speed values in mm/min -->
       <!-- 5mm/sec = 300mm/min-->

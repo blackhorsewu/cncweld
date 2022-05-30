@@ -10,11 +10,11 @@ cnc_obj = cnc()
 
 def cmdCallback(msg):
 
-	rospy.loginfo(rospy.get_name() + ": " + str(msg))
-	print("************************************** Received command with position as below:")
-	print( msg.linear.x, msg.linear.y, msg.linear.z)
+	# rospy.loginfo(rospy.get_name() + ": " + str(msg))
+	# print("************************************** Received command with position as below:")
+	# print( msg.linear.x, msg.linear.y, msg.linear.z)
 	cnc_obj.moveTo(msg.linear.x, msg.linear.y, msg.linear.z, blockUntilComplete=True)
-	print("Finished moveTo")
+	# print("Finished moveTo")
 
 def stopCallback(msg):
 		#stop steppers

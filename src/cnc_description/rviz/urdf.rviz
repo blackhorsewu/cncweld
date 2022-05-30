@@ -4,13 +4,13 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /RobotModel1
         - /RobotModel1/Links1
-        - /RobotModel1/Links1/X_link1
         - /RobotModel1/Links1/X_link1/Position1
-        - /RobotModel1/Links1/tool01
+        - /RobotModel1/Links1/lj_v7200_optical_frame1
+        - /RobotModel1/Links1/lj_v7200_optical_frame1/Position1
         - /RobotModel1/Links1/torch1
         - /RobotModel1/Links1/torch1/Position1
-        - /RobotModel1/Links1/world1
         - /RobotModel1/Links1/world1/Position1
         - /TF1/Frames1
         - /Deepest points1
@@ -193,7 +193,7 @@ Visualization Manager:
       Marker Topic: /deepest_point
       Name: Deepest points
       Namespaces:
-        dpst_pt: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -239,10 +239,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5847982168197632
+      Pitch: 0.629798173904419
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 5.403416633605957
+      Yaw: 5.633418083190918
     Saved:
       - Class: rviz/Orbit
         Distance: 1.2575963735580444
