@@ -180,6 +180,43 @@ class cnc:
 			time.sleep(.01)		
 		"""
 
+	def jumpTo(self, x=None, y=None, z=None, speed=None, blockUntilComplete=True):
+		""" move to an absolute position, and return when movement completes """
+		# print("Come into moveTo")
+		if not self.idle: return
+		if x is None and y is None and z is None: return
+		if speed is None: speed = self.defaultSpeed
+		# print("Going to start moveTo")
+		self.ensureMovementMode(absoluteMode = True)
+		
+		gcode = 'G00'
+		letters = 'XYZ'
+		pos = (x, y, z)
+		newpos = list(self.pos)
+		# newly added by V Wu 22 May 2022
+		gcode += ' F' + str(speed)
+		#create gcode string and update position list for each argument that isn't None
+		for i in range(3):
+			if pos[i] is not None:
+				#check against self.limits
+				# Victor Wu added lo_limits on 20 May 2022, z needs to go -ve
+				if pos[i] < self.lo_limits[i] or pos[i] > self.up_limits[i]:
+					# if position is outside the movement range, ignore
+					return
+				gcode += ' ' + letters[i] + str(pos[i])
+				newpos[i] = pos[i]
+		# gcode += ' F' + str(speed)
+		# print("*******************************************************")
+		# print(gcode)
+		gcode += '\n'
+		try:
+			self.s.write(str.encode(gcode))
+			# print("G-Code just sent.")
+			# we may not want to change the position TO the destination yet.
+			# self.pos = newpos 
+		except:
+			print("Serial port unavailable")
+
 	def moveRel(self, dx=None, dy=None, dz=None, speed=None, blockUntilComplete=True):
 		""" move a given distance, and return when movement completes
 		:param dx, dy, dz: distance to move

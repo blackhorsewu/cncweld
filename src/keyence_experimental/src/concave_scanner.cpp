@@ -36,6 +36,7 @@
 
 // Visualisation markers
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/Twist.h>
 
 // Visual Tools
@@ -54,11 +55,13 @@ using namespace std;
 const static double KEYENCE_INFINITE_DISTANCE_VALUE_SI = -999.9990 / 1e3;
 const static double KEYENCE_INFINITE_DISTANCE_VALUE_SI2 = -999.9970 / 1e3;
 
-// the publishers declared here to be global and used in functions,
+// the publishers and subscriber declared here to be global and used in functions,
 // will be initialised in main
 ros::Publisher pub;     // publisher for the cumulated cloud
 ros::Publisher mkr_pub; // publisher for the deepest points
 ros::Publisher pos_pub; // publisher for the position to move to
+
+ros::Subscriber sub; // subscriber for point cloud
 
 int marker_id = 0;
 
@@ -75,10 +78,14 @@ double home_off_x = 320.0;
 double home_off_y = -100.0;
 double home_off_z = 93.0;
 
+double maxX = 550.0 + home_off_x;
+
 double target_x = 0.0; // mm
 
 double start_x = -0.85; // mm
 double x_step = 30.0; // mm
+
+bool finish_scanning = false;
 
 /* Declarations for writing to files
 bool write_Y_file = false; // write the whole scan brief data to a file
@@ -93,6 +100,8 @@ int file_no = 0;
 
 // Point index of first and last valid points in a scan line
 int valid_begin, valid_end;
+
+visualization_msgs::MarkerArray dpst_pt_array;
 
 void publish_deepest_pt(pcl::PointXYZ deepest_point)
 {
@@ -118,9 +127,24 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
 
   // publish the point as a marker in RViz
   mkr_pub.publish(dpst_pt);
+  dpst_pt_array.markers.push_back(dpst_pt);
 }
 
 geometry_msgs::Point points;
+
+void edit_markers()
+{
+  /* edit the markers stored in the marker array dpst_pt_array */
+  ROS_INFO("Start to change colour of markers");
+  
+  for (int id = 0; id <= marker_id; id++)
+  {
+    /* go through each marker and change its colour indicate to user */
+    dpst_pt_array.markers[id].color.r = 0;
+    dpst_pt_array.markers[id].color.g = 1;
+    mkr_pub.publish(dpst_pt_array.markers[id]);
+  }
+}
 
 /*
  * Publish a Twist topic to cnc_interface to move to the specified position.
@@ -213,11 +237,27 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
 
   ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
 
-  move_scanner_to(x, y, z);
-  // There should be another one to move the torch to.
-  // The difference is the position in the z direction.
+  /*
+   * Check if x exceeds the Max X, if yes then stop scanning and go into markers editing
+   */
+  // if (x >= maxX)
+  if (x >= 800)
+  {
+    /* stop scanning and start editing markers */
+    ROS_INFO("Finish scanning and going to edit the markers.");
+    finish_scanning = true;
+    sub.shutdown();
+    edit_markers();
+  }
+  else
+  {
+    /* carry on as usual */
+    move_scanner_to(x, y, z);
+    // There should be another one to move the torch to.
+    // The difference is the position in the z direction.
 
-  publish_deepest_pt(pointcloud[dpst]);
+    publish_deepest_pt(pointcloud[dpst]);
+  }
 
 }
 
@@ -288,12 +328,12 @@ int main(int argc, char** argv)
   pos_pub = nh.advertise<geometry_msgs::Twist>("/cnc_interface/cmd", 1);
 
   /*
-   * Listen for Point Cloud - profile from Laser Scanner
+   * Listen for Point Cloud - /profiles from Laser Scanner
    */
   std::string topic = nh.resolveName(cloud_topic);
   ROS_INFO_STREAM("Cloud service called; waiting for a PointCloud2 on topic " << topic);
 
-  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
+  sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
 
   ros::spin();
   return 0;
