@@ -76,14 +76,14 @@ std::string world_frame;
 // Meaning, when the CNC Machine is homed, ROS reports this position
 double home_off_x = 320.0;
 double home_off_y = -100.0;
-double home_off_z = 93.0;
+double home_off_z = 93.0; // for torch; for optical frame 97.73 mm
 
 double maxX = 550.0 + home_off_x;
 
 double target_x = 0.0; // mm
 
 double start_x = -0.85; // mm
-double x_step = 30.0; // mm
+double x_step = 25.0; // mm
 
 bool finish_scanning = false;
 

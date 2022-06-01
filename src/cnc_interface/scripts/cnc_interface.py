@@ -54,7 +54,8 @@ def main():
 	cnc_obj.startup(port,baud,acc,min_x,min_y,min_z,max_x,max_y,max_z,default_speed,speed_x,speed_y,
 					speed_z,steps_x,steps_y,steps_z)
 	# rate = rospy.Rate(10)
-	rate = rospy.Rate(3.3)
+
+	rate = rospy.Rate(9)
 
 	while not rospy.is_shutdown():
 		# get the necessary data and put them into ROS format

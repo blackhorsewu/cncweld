@@ -71,6 +71,39 @@ class cnc:
 		self.up_limits  = [self.x_max, self.y_max, self.z_max]	
 		#initiates the serial port
 		self.s = serial.Serial(self.port, self.baudrate)
+
+		self.s.write(str.encode('$100=' + str(self.x_steps_mm)+"\n")) # $100 for x steps / mm
+		self.s.readline()
+		self.s.write(str.encode('$101=' + str(self.y_steps_mm)+"\n")) # $101 for y steps / mm
+		self.s.readline()
+		self.s.write(str.encode('$102=' + str(self.z_steps_mm)+"\n")) # $102 for z steps / mm
+		self.s.readline()
+
+		self.s.write(str.encode("$110="+str(self.x_max_speed)+"\n")) # $110 for x speed mm / min
+		self.s.readline()
+		self.s.write(str.encode("$111="+str(self.y_max_speed)+"\n")) # $111 for y speed mm / min
+		self.s.readline()
+		self.s.write(str.encode("$112="+str(self.z_max_speed)+"\n")) # $112 for z speed mm / min
+		self.s.readline()
+
+		self.s.write(str.encode("$120=" + str(self.acceleration)+"\n")) # $120 for x accel mm/sec^2
+		self.s.readline()
+		self.s.write(str.encode("$121=" + str(self.acceleration)+"\n")) # $121 for y accel mm/sec^2
+		self.s.readline()
+		self.s.write(str.encode("$122=" + str(self.acceleration)+"\n")) # $122 for z accel mm/sec^2
+		self.s.readline()
+
+		self.travel_x = self.x_max - self.x_min
+		self.travel_y = self.y_max - self.y_min
+		self.travel_z = self.z_max - self.z_min
+
+		self.s.write(str.encode("$130=" + str(self.travel_x)+"\n")) # $130 for x max travel mm 
+		self.s.readline()
+		self.s.write(str.encode("$131=" + str(self.travel_y)+"\n")) # $131 for y max travel mm
+		self.s.readline()
+		self.s.write(str.encode("$132=" + str(self.travel_z)+"\n")) # $132 for z max travel mm
+		self.s.readline()
+
 		# set movement to Absolut coordinates
 		self.ensureMovementMode(True)
 		# set status report Work Position; the $10 setting of GRBL
@@ -78,7 +111,7 @@ class cnc:
 		# start homing procedure
 		self.home()
 		# set the current position as the origin (GRBL sometimes starts with z not 0)
-		self.setOrigin()	
+		self.setOrigin()
 
 	def setReportFormat(self):
 		# set status to report Machine Position or Work Position
@@ -95,6 +128,7 @@ class cnc:
 	def getTwist(self):
 
 		#convert coordinates to ROS Twist format to be published
+		# this is a way of creating a Twist object. Just like new in c++
 		cnc_pose = Twist()
 		cnc_pose.linear.x  = float(self.pos[0])
 		cnc_pose.linear.y  = float(self.pos[1])
@@ -114,7 +148,8 @@ class cnc:
 		# initaites the home procedure
 		self.s.write(str.encode("$H\n"))
 		self.s.readline()
-		self.pos = list(self.origin)
+		# do not set the position immeidately to home yet
+		# self.pos = list(self.origin) 
 
 	def enableSteppers(self):
 		# enable the stepper motors
@@ -140,13 +175,16 @@ class cnc:
 		if speed is None: speed = self.defaultSpeed
 		# print("Going to start moveTo")
 		self.ensureMovementMode(absoluteMode = True)
+		# self.ensureMovementMode(absoluteMode = False)
+
 		
 		gcode = 'G01'
 		letters = 'XYZ'
 		pos = (x, y, z)
+		# be careful here, pos is local pos and self.pos is global pos
 		newpos = list(self.pos)
 		# newly added by V Wu 22 May 2022
-		gcode += ' F' + str(speed)
+		# gcode += ' F' + str(speed)
 		#create gcode string and update position list for each argument that isn't None
 		for i in range(3):
 			if pos[i] is not None:
@@ -157,14 +195,14 @@ class cnc:
 					return
 				gcode += ' ' + letters[i] + str(pos[i])
 				newpos[i] = pos[i]
-		# gcode += ' F' + str(speed)
+		gcode += ' F' + str(speed)
 		# print("*******************************************************")
 		# print(gcode)
-		gcode += '\n'
+		gcode += '\n' # must have this crlf otherwise grbl will not accept it
 		try:
 			self.s.write(str.encode(gcode))
 			# print("G-Code just sent.")
-			# we may not want to change the position TO the destination yet.
+			# G-Code just sent but may not be the new pose yet.
 			# self.pos = newpos 
 		except:
 			print("Serial port unavailable")
