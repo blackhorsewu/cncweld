@@ -92,6 +92,8 @@ double scanner_start_x = -2.85; // (mm) was -0.85
 double scanner_start_z = -62.73; // (mm)
 double x_step = 10.0; // mm
 
+double last_x = 0.0; 
+
 bool finish_scanning = false;
 
 /* Declarations for writing to files
@@ -187,7 +189,8 @@ void move_scanner_to(double x, double y, double z)
   ROS_INFO("In ROS: x: %.3f, y: %.3f, z: %.3f", x, y, z);
   ROS_INFO("In CNC: x: %.3f, y: %.3f, z: %.3f", position.linear.x, position.linear.y, position.linear.z);
 
-  if ((target_x == 0.0) || (abs(position.linear.x - target_x)/target_x <= 0.02)) // reached target, work for next target
+  // if ((target_x == 0.0) || (abs(position.linear.x - target_x)/target_x <= 0.02)) // reached target, work for next target
+  if ((position.linear.x - last_x) < 0.5) // less than half mm, it is not enough progress
   {
     // if (target_x <= 0) target_x = x_step; else target_x = position.linear.x + x_step;
     target_x = position.linear.x + x_step;
@@ -196,6 +199,7 @@ void move_scanner_to(double x, double y, double z)
     ROS_INFO("Target x: %.3f, y: %.3f, z: %.3f", position.linear.x, position.linear.y, position.linear.z );
     ROS_INFO("Command published. ******************************");
   }
+  last_x = position.linear.x;
 }
 
 void move_torch_to(double x, double y, double z)
@@ -244,7 +248,7 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
   y = pointcloud[dpst].y * 1e3;
   z = pointcloud[dpst].z * 1e3;
 
-  ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
+  ROS_INFO("Deepest Point: x: %.3f y: %.3f z: %.3f ", x, y, z );
 
   /*
    * Check if x exceeds the Max X, if yes then stop scanning and go into markers editing

@@ -8,7 +8,7 @@
       <param name="baudrate"     type="double" value="115200" />
       <param name="port"         type="string" value="/dev/ttyACM0"/>
       <!--Axis acceleration values in mm/s^2  -->
-      <param name="acceleration" type="int"    value="1000" /> 
+      <param name="acceleration" type="int"    value="2000" /> 
       <!--Workable volume in mm  -->
       <param name="x_min" type="int" value="0" />
       <param name="y_min" type="int" value="0" />
@@ -19,7 +19,7 @@
       <param name="z_max" type="int" value="0" />
       <!-- Speed values in mm/min -->
       <!-- 5mm/sec = 300mm/min-->
-      <param name="default_speed" type="int" value="1000" /> <!-- was 1000 -->
+      <param name="default_speed" type="int" value="300" /> <!-- was 1000 -->
       <param name="x_max_speed"   type="int" value="2500" />  
       <param name="y_max_speed"   type="int" value="2500" />
       <param name="z_max_speed"   type="int" value="300" />    
