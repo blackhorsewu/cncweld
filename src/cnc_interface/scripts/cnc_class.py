@@ -196,8 +196,8 @@ class cnc:
 				gcode += ' ' + letters[i] + str(pos[i])
 				newpos[i] = pos[i]
 		gcode += ' F' + str(speed)
-		# print("*******************************************************")
-		# print(gcode)
+		print("*******************************************************")
+		print(gcode)
 		gcode += '\n' # must have this crlf otherwise grbl will not accept it
 		try:
 			self.s.write(str.encode(gcode))

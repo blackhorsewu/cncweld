@@ -74,16 +74,23 @@ std::string world_frame;
 
 // CNC Machine home offsets in mm
 // Meaning, when the CNC Machine is homed, ROS reports this position
-double home_off_x = 320.0;
-double home_off_y = -100.0;
-double home_off_z = 93.0; // for torch; for optical frame 97.73 mm
+// for TORCH
+double home_off_x = 320.0;  // (mm)
+double home_off_y = -100.0; // (mm)
+double home_off_z = 93.0;   // for torch; for optical frame 97.73 mm
+
+// Laser scanner optical frame home offsets in mm
+double scanner_off_x = 314.5;   // (mm)346.30
+double scanner_off_y = -99.995; // (mm)
+double scanner_off_z = 97.73;   // for optical frame 97.73 mm
 
 double maxX = 550.0 + home_off_x;
 
 double target_x = 0.0; // mm
 
-double start_x = -0.85; // mm
-double x_step = 25.0; // mm
+double scanner_start_x = -2.85; // (mm) was -0.85
+double scanner_start_z = -62.73; // (mm)
+double x_step = 10.0; // mm
 
 bool finish_scanning = false;
 
@@ -162,26 +169,28 @@ void move_scanner_to(double x, double y, double z)
 {
   geometry_msgs::Twist position;
 
-  position.linear.x = x - home_off_x - start_x; // scanner head offset - start_x 
+  position.linear.x = x - scanner_off_x; // scanner head offset - start_x 
 
-  if (y <= home_off_y )
+  if (y <= scanner_off_y )
   {
     position.linear.y = 0;
   }
   else
   {
-    position.linear.y = y - home_off_y;
+    position.linear.y = y - scanner_off_y;
   }
 
-  position.linear.z = 50 - home_off_z; // because the z moves in reverse direction
+  // because the z moves in reverse direction
+  // position.linear.z = 50 - home_off_z;
+  position.linear.z = z - scanner_off_z - scanner_start_z;
 
-  ROS_INFO("Position: x: %.3f", position.linear.x);
-  ROS_INFO("Old Target_x: x: %.3f", target_x);
+  ROS_INFO("In ROS: x: %.3f, y: %.3f, z: %.3f", x, y, z);
+  ROS_INFO("In CNC: x: %.3f, y: %.3f, z: %.3f", position.linear.x, position.linear.y, position.linear.z);
 
-  if ((position.linear.x <= 0.0) || (position.linear.x >= (target_x - 0.25))) // reached target, work for next target
+  if ((target_x == 0.0) || (abs(position.linear.x - target_x)/target_x <= 0.02)) // reached target, work for next target
   {
-    if (target_x <= 0) target_x = x_step; else target_x = position.linear.x + x_step;
-    ROS_INFO("New Target_x: x: %.3f", target_x);
+    // if (target_x <= 0) target_x = x_step; else target_x = position.linear.x + x_step;
+    target_x = position.linear.x + x_step;
     position.linear.x = target_x;
     pos_pub.publish(position);
     ROS_INFO("Target x: %.3f, y: %.3f, z: %.3f", position.linear.x, position.linear.y, position.linear.z );
@@ -247,7 +256,7 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
     ROS_INFO("Finish scanning and going to edit the markers.");
     finish_scanning = true;
     sub.shutdown();
-    edit_markers();
+    // edit_markers();
   }
   else
   {
