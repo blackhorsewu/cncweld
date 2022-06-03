@@ -9,13 +9,13 @@ This project tries to use a CNC Mechanism with 4 degrees of freedom (dof) to do 
 
 It was mainly designed and implemented by Victor W H Wu (邬伟雄).
 
-This project uses a self built CNC Mechanism, driven by *stepper motors*. It uses a *laser scanner* - Keyence LJ V7200 to scan the welding groove. This will help users to locate the welding groove relative to the CNC machine without time consuming setup and alignment time.
+This project uses a self built CNC Mechanism, driven by *stepper motors*. It uses a *laser scanner* - Keyence LJ V7200 to scan welding grooves. This will help CNCWELD to locate welding grooves relative to the CNC machine without time consuming setup and alignment time.
 
-The whole project is implemented in the Robot Operating System (ROS). As the laser scanner scans the welding groove, a point cloud showing the welding groove is shown in the RViz (ROS Visualizer). At the same time, *way-points* of the welding path is also shown.
+The whole project is implemented in the Robot Operating System (ROS). As the laser scanner scans welding grooves, a point cloud showing the welding groove is shown in the RViz (ROS Visualizer). At the same time, *way-points* of the welding path is also shown.
 
-When the scanning is completed, users can edit and even pick and choose whichever way-points are wanted or not wanted and where to begin and where to end.
+When the scanning is completed, users can instruct CNCWELD where to begin and where to end.
 
-After the way-points of the welding path is confirmed, the CNC Mechanism will start welding from either end as instructed by the user.
+After the way-points of the welding path is confirmed, the CNC Mechanism will start welding from either end as instructed by users.
 
 ## ROS
 
@@ -39,7 +39,9 @@ There are four main modules in CNCWELD. They are:
 
 To control the CNC mechanism, it is necessary to build a model of it. ROS uses the Universal Robot Description Format (URDF) to describe robots. The CNC mechanism used in this project is a kind of robot, with 3 *prismatic* joints for the X, Y, and Z axes and a *rovolute* joint for the *A* axis. In CNC terms, the *A* axis is the rotating axis that rotates about the X axis. Therefore the *welding torch* can swing from side to side of a welding groove.
 
-[A picture of RViz showing the CNC mechanism](images/CNC%20Mechanism%20visualized%20in%20RViz%20(20%20May%202022).png).
+|![A picture of RViz showing the CNC mechanism](images/CNC%20Mechanism%20visualized%20in%20RViz%20(20%20May%202022).png) |
+| :--: |
+| *CNCWELS as shown in RViz*  |
 
 ### 2. GRBL on Arduino and the CNC mechanism
 
