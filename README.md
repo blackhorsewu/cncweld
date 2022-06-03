@@ -41,7 +41,12 @@ To control the CNC mechanism, it is necessary to build a model of it. ROS uses t
 
 |![A picture of RViz showing the CNC mechanism](images/CNC%20Mechanism%20visualized%20in%20RViz%20(20%20May%202022).png) |
 | :--: |
-| *CNCWELS as shown in RViz*  |
+| *CNCWELD as shown in RViz*  |
+
+For a good practice, the CNC mechanism should be put in a description folder, and all the other end effectors should be put in the cncweld_support folder. 
+
+The cncweld_support should then provide launch files that setup for different end effectors. It is common that welding machines have welding torches of different shapes.
+Usually, there are at least *straight* and *bended* torches. When they are used, different urdf (or xacro) files are needed and specified by different *launch* files.
 
 ### 2. GRBL on Arduino and the CNC mechanism
 
