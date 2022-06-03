@@ -29,11 +29,17 @@ Each model of a ROS project is called a *package* inside the top level `src` of 
 
 ## Modules
 
-### 1. CNC Description
+There are four main modules in CNCWELD. They are:
+1. cncweld_description, describes the structure of the CNC mechanism
+2. cncweld_support, provides setups and launch files
+3. keyence_experimental, the laser scanner driver
+4. cncweld_core, privides the core functionalities
+
+### 1. CNCWELD Description
 
 To control the CNC mechanism, it is necessary to build a model of it. ROS uses the Universal Robot Description Format (URDF) to describe robots. The CNC mechanism used in this project is a kind of robot, with 3 *prismatic* joints for the X, Y, and Z axes and a *rovolute* joint for the *A* axis. In CNC terms, the *A* axis is the rotating axis that rotates about the X axis. Therefore the *welding torch* can swing from side to side of a welding groove.
 
-A picture of RViz showing the CNC mechanism should be inserted here.
+[A picture of RViz showing the CNC mechanism](images/CNC%20Mechanism%20visualized%20in%20RViz%20(20%20May%202022).png).
 
 ### 2. GRBL on Arduino and the CNC mechanism
 
