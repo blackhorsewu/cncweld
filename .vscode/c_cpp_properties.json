@@ -10,7 +10,9 @@
                 "/opt/ros/melodic/include/**",
                 "/usr/include/**",
                 "/opt/ros/melodic/include",
-                "${workspaceFolder}/src/keyence_experimental/keyence_library/include"
+                "${workspaceFolder}/src/keyence_experimental/keyence_library/include",
+                "${workspaceFolder}/src/cncweld_core/include",
+                "${workspaceFolder}/src/cncweld_core/include"
             ],
             "name": "ROS"
         }
