@@ -4,50 +4,19 @@ project(cncweld_core)
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11 -lboost_system)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-#  boost
   roscpp
   std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package(Threads REQUIRED)
 
 
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
-
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
-
-## To declare and build messages, services or actions from within this
-## package, follow these steps:
-## * Let MSG_DEP_SET be the set of packages whose message types you use in
-##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
-## * In the file package.xml:
-##   * add a build_depend tag for "message_generation"
-##   * add a build_depend and a exec_depend tag for each package in MSG_DEP_SET
-##   * If MSG_DEP_SET isn't empty the following dependency has been pulled in
-##     but can be declared for certainty nonetheless:
-##     * add a exec_depend tag for "message_runtime"
-## * In this file (CMakeLists.txt):
-##   * add "message_generation" and every package in MSG_DEP_SET to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * add "message_runtime" and every package in MSG_DEP_SET to
-##     catkin_package(CATKIN_DEPENDS ...)
-##   * uncomment the add_*_files sections below as needed
-##     and list every .msg/.srv/.action file to be processed
-##   * uncomment the generate_messages entry below
-##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
 # add_message_files(
@@ -88,22 +57,17 @@ catkin_package(
     include
   LIBRARIES
     cncweld_core
-#    serialport
   CATKIN_DEPENDS
     roscpp
-#   DEPENDS
-#     system_lib
 )
 
 ###########
 ## Build ##
 ###########
 
-## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
   include
-  # serial-port/include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -125,11 +89,10 @@ add_executable(
   ${PROJECT_NAME}_node 
   src/cncweld_core_node.cpp)
 
-## Rename C++ executable without prefix
-## The above recommended prefix causes long target names, the following renames the
-## target back to the shorter version for ease of user use
-## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+add_library(
+  AsyncSerial
+  src/AsyncSerial.cpp
+)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -137,9 +100,8 @@ add_executable(
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(
-#  SimpleSerial
-#  serialport
   ${PROJECT_NAME}_node
+  AsyncSerial
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
