@@ -39,9 +39,9 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    Grbl grbl(argv[1], atoi(argv[2]), received);
+    Grbl grbl(argv[1], atoi(argv[2]));
 
-    grbl.test();
+    grbl.test(received);
 
     /*
     ROS_INFO("Going to talk with GRBL");

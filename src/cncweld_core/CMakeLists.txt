@@ -56,6 +56,8 @@ catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
+    AsyncSerial
+    Grbl
     cncweld_core
   CATKIN_DEPENDS
     roscpp
@@ -94,6 +96,11 @@ add_library(
   src/AsyncSerial.cpp
 )
 
+# add_library(
+#  Grbl
+  #src/grbl_interface.cpp
+#)
+
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -102,6 +109,7 @@ add_library(
 target_link_libraries(
   ${PROJECT_NAME}_node
   AsyncSerial
+#  Grbl
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
@@ -141,7 +149,8 @@ install(
 #)
 
 ## Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}/
+# install(DIRECTORY include/${PROJECT_NAME}/
+install(DIRECTORY include/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE

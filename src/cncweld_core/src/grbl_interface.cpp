@@ -11,22 +11,33 @@
 #include <ros/ros.h>
 #include "AsyncSerial.h"
 
+// This is very important otherwise the compiler will not have the class
+// declaration and will not know this is the definition
+#include "grbl_interface.h"
+
 using namespace std;
 
 namespace grbl_interface
 {
 
-// class Grbl
-// {
-// private:
-/*
-Grbl(const std::string& devname, unsigned int baud_rate, void (*callback)(const char *data, unsigned int len))
+CallbackAsyncSerial serial_;
+
+Grbl::Grbl(const std::string& devname,
+           unsigned int baud_rate
+           )
 {
-    CallbackAsyncSerial serial_(devname, baud_rate);
-    serial_.setCallback(callback);
+    try
+    {
+        CallbackAsyncSerial serial_(devname, baud_rate);
+        // serial_.setCallback(callback);
+        ROS_INFO("I am here.");
+    }
+    catch (std::exception& e) {
+            cerr<<"Exception: "<<e.what()<<endl;
+    }
 }
 
-void test()
+void Grbl::test(const std::function<void (const char*, unsigned int)>& callback)
 {
     termios stored_settings;
     tcgetattr(0, &stored_settings);
@@ -40,7 +51,7 @@ void test()
 
     try {
         // CallbackAsyncSerial serial(argv[1],stoi(argv[2]));
-        // serial.setCallback(received);
+        serial_.setCallback(callback);
         for(;;)
         {
             if(serial_.errorStatus() || serial_.isOpen()==false)
@@ -76,7 +87,5 @@ void test()
 
     tcsetattr(0, TCSANOW, &stored_settings);
 }
-*/
-// };
 
 }
