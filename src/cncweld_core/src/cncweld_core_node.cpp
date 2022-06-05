@@ -4,10 +4,17 @@
 #include <iostream>
 #include <termios.h>
 
+#include <ros/ros.h>
+
+#include "grbl_interface.h"
+
 using namespace std;
+
+using namespace grbl_interface;
 
 void received(const char *data, unsigned int len)
 {
+    cout << "Received " << len << " characters: ";
     vector<char> v(data,data+len);
     for(unsigned int i=0;i<v.size();i++)
     {
@@ -32,49 +39,12 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    termios stored_settings;
-    tcgetattr(0, &stored_settings);
-    termios new_settings = stored_settings;
-    new_settings.c_lflag &= (~ICANON);
-    new_settings.c_lflag &= (~ISIG); // don't automatically handle control-C
-    new_settings.c_lflag &= ~(ECHO); // no echo
-    tcsetattr(0, TCSANOW, &new_settings);
+    Grbl grbl(argv[1], atoi(argv[2]), received);
 
-    cout<<"\e[2J\e[1;1H"; //Clear screen and put cursor to 1;1
+    grbl.test();
 
-    try {
-        CallbackAsyncSerial serial(argv[1],stoi(argv[2]));
-        serial.setCallback(received);
-        for(;;)
-        {
-            if(serial.errorStatus() || serial.isOpen()==false)
-            {
-                cerr<<"Error: serial port unexpectedly closed"<<endl;
-                break;
-            }
-            char c;
-            cin.get(c); //blocking wait for standard input
-            if(c==3) //if Ctrl-C
-            {
-                cin.get(c);
-                switch(c)
-                {
-                    case 3:
-                        serial.write(&c,1);//Ctrl-C + Ctrl-C, send Ctrl-C
-                    break;
-                    case 'x': //fall-through
-                    case 'X':
-                        goto quit;//Ctrl-C + x, quit
-                    default:
-                        serial.write(&c,1);//Ctrl-C + any other char, ignore
-                }
-            } else serial.write(&c,1);
-        }
-        quit:
-        serial.close();
-    } catch (std::exception& e) {
-        cerr<<"Exception: "<<e.what()<<endl;
-    }
-
-    tcsetattr(0, TCSANOW, &stored_settings);
+    /*
+    ROS_INFO("Going to talk with GRBL");
+    talk_with_grbl(argv);
+    */
 }

@@ -188,15 +188,6 @@ void AsyncSerial::readEnd(const boost::system::error_code& error,
 {
     if(error)
     {
-        #ifdef __APPLE__
-        if(error.value()==45)
-        {
-            //Bug on OS X, it might be necessary to repeat the setup
-            //http://osdir.com/ml/lib.boost.asio.user/2008-08/msg00004.html
-            doRead();
-            return;
-        }
-        #endif //__APPLE__
         //error can be true even because the serial port was closed.
         //In this case it is not a real error, so ignore
         if(isOpen())
