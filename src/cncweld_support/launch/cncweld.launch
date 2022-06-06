@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<!-- 1. Display the RViz -->
+  <arg name="cncweld" />
+  <param name="robot_description" command="xacro $(find cnc_description)/urdf/cnc.xacro" />
+
+  <!-- Use the joint state publisher specially written for cncweld
+     This will change to be built-in in cncweld_core -->    
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"
+    output="screen" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cnc_description)/rviz/urdf.rviz" />
+
+<!-- 2. Setup GRBL in cncweld_core to move the machine -->
+  <node name="cncweld_core_node" pkg="cncweld_core" type="cncweld_core_node" output="screen" />
+  <!-- Parameters for GRBL settings -->
+  
+    <!-- Serial Port settings -->
+    <param name="baudrate" type="double" value="115200" />
+    <param name="port" type="string" value="/dev/ttyACM0" />
+    <!-- Accelerations -->
+    <param name="x_accel" type="int" value="1000" />
+    <param name="y_accel" type="int" value="1000" />
+    <param name="z_accel" type="int" value="1000" />
+    <!-- Minimum Positions -->
+    <param name="x_min" type="int" value="0" />
+    <param name="y_min" type="int" value="0" />
+    <param name="z_min" type="int" value="-90" />
+    <!-- Maximum Positions -->
+    <param name="x_max" type="int" value="650" />
+    <param name="y_max" type="int" value="200" />
+    <param name="z_max" type="int" value="0" />
+    <!-- Maximum Speed -->
+    <param name="x_max_speed" type="int" value="2500" />
+    <param name="y_max_speed" type="int" value="2500" />
+    <param name="z_max_speed" type="int" value="500" />
+    <!-- Steps per mm movement -->
+    <param name="x_steps" type="int" value="200" />
+    <param name="y_steps" type="int" value="200" />
+    <param name="z_steps" type="int" value="200" />
+  </node>
+
+<!-- 3. Starts the Keyence laser scanner -->
+  <node name="keyence_driver_node" pkg="keyence_experimental" type="keyence_driver_node" />
+    <param name="controller_port" type="string" value="192.168.0.6" />
+    <param name="frame_id" type="string" value="lj_v7200_optical_frame" />
+  </node>
+
+  <node name="concave_scanner" pkg="keyence_experimental" type="concave_scanner" />
+
+</launch>
