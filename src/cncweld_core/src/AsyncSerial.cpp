@@ -59,12 +59,12 @@ public:
     /// Data are queued here before they go in writeBuffer
     std::vector<char> writeQueue;
     boost::shared_array<char> writeBuffer; ///< Data being written
-    size_t writeBufferSize; ///< Size of writeBuffer
+    unsigned int writeBufferSize; ///< Size of writeBuffer
     std::mutex writeQueueMutex; ///< Mutex for access to writeQueue
     char readBuffer[AsyncSerial::readBufferSize]; ///< data being read
 
     /// Read complete callback
-    std::function<void (const char*, size_t)> callback;
+    std::function<void (const char*, unsigned int)> callback;
 };
 
 AsyncSerial::AsyncSerial(): pimpl(new AsyncSerialImpl)
@@ -133,7 +133,7 @@ void AsyncSerial::close()
     }
 }
 
-void AsyncSerial::write(const char *data, size_t size)
+void AsyncSerial::write(const char *data, unsigned int size)
 {
     {
         lock_guard<mutex> l(pimpl->writeQueueMutex);
@@ -184,19 +184,10 @@ void AsyncSerial::doRead()
 }
 
 void AsyncSerial::readEnd(const boost::system::error_code& error,
-        size_t bytes_transferred)
+        unsigned int bytes_transferred)
 {
     if(error)
     {
-        #ifdef __APPLE__
-        if(error.value()==45)
-        {
-            //Bug on OS X, it might be necessary to repeat the setup
-            //http://osdir.com/ml/lib.boost.asio.user/2008-08/msg00004.html
-            doRead();
-            return;
-        }
-        #endif //__APPLE__
         //error can be true even because the serial port was closed.
         //In this case it is not a real error, so ignore
         if(isOpen())
@@ -269,14 +260,14 @@ void AsyncSerial::setErrorStatus(bool e)
     pimpl->error=e;
 }
 
-void AsyncSerial::setReadCallback(const std::function<void (const char*, size_t)>& callback)
+void AsyncSerial::setReadCallback(const std::function<void (const char*, unsigned int)>& callback)
 {
     pimpl->callback=callback;
 }
 
 void AsyncSerial::clearReadCallback()
 {
-    std::function<void (const char*, size_t)> empty;
+    std::function<void (const char*, unsigned int)> empty;
     pimpl->callback.swap(empty);
 }
 
@@ -301,7 +292,7 @@ CallbackAsyncSerial::CallbackAsyncSerial(const std::string& devname,
 
 }
 
-void CallbackAsyncSerial::setCallback(const std::function<void (const char*, size_t)>& callback)
+void CallbackAsyncSerial::setCallback(const std::function<void (const char*, unsigned int)>& callback)
 {
     setReadCallback(callback);
 }

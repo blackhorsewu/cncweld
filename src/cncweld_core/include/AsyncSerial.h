@@ -97,7 +97,7 @@ public:
      * \param data array of char to be sent through the serial device
      * \param size array size
      */
-    void write(const char *data, size_t size);
+    void write(const char *data, unsigned int size);
 
      /**
      * Write data asynchronously. Returns immediately.
@@ -132,7 +132,7 @@ private:
      * This callback is called by the io_service in the spawned thread.
      */
     void readEnd(const boost::system::error_code& error,
-        size_t bytes_transferred);
+        unsigned int bytes_transferred);
 
     /**
      * Callback called to start an asynchronous write operation.
@@ -166,7 +166,7 @@ protected:
     /**
      * To allow derived classes to set a read callback
      */
-    void setReadCallback(const std::function<void (const char*, size_t)>& callback);
+    void setReadCallback(const std::function<void (const char*, unsigned int)>& callback);
 
     /**
      * To unregister the read callback in the derived class destructor so it
@@ -217,7 +217,7 @@ public:
      * serial port.
      * \param callback the receive callback
      */
-    void setCallback(const std::function<void (const char*, size_t)>& callback);
+    void setCallback(const std::function<void (const char*, unsigned int)>& callback);
 
     /**
      * Removes the callback. Any data received after this function call will
