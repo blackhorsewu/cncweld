@@ -2,6 +2,25 @@
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 
+#include <tf/transform_datatypes.h>
+#include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
+#include <sensor_msgs/PointCloud2.h>
+
+#include <pcl_conversions/pcl_conversions.h>
+#include "pcl_ros/transforms.h"
+#include <pcl_ros/point_cloud.h>
+
+#include <pcl/point_types.h>
+
+// Visualisation markers
+#include <visualization_msgs/Marker.h>
+#include <geometry_msgs/Twist.h>
+
+// Visual Tools
+#include <moveit_visual_tools/moveit_visual_tools.h>
+#include <rviz_visual_tools/rviz_visual_tools.h>
+
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
@@ -25,11 +44,26 @@ int xsteps, ysteps, zsteps;
 
 string input_line;
 
-// Joint State Publisher
-ros::Publisher jsp_pub;
+// the publishers declared here to be global and used in functions,
+// will be initialised in main
+
+ros::Publisher jsp_pub; // Joint State Publisher
+
+ros::Publisher pub;     // publisher for the cumulated cloud
+ros::Publisher mkr_pub; // publisher for the deepest points
+ros::Publisher pos_pub; // publisher for the position to move to
+
+int marker_id = 0;
 
 // Create an object of type "jointState"
 sensor_msgs::JointState jointState;
+
+pcl::PointCloud<pcl::PointXYZ> pcl_Y_cloud; // cumulated cloud
+
+// needed for transformation from scanner frame to world frame
+std::string sensor_host;
+std::string scanner_frame;
+std::string world_frame;
 
 void initJointStates()
 {
@@ -40,6 +74,72 @@ void initJointStates()
 
   for (int i=0; i < 3; i++) // allocate memory and initialize joint values
     jointState.position.push_back(0.0);
+}
+
+void setupPublishers(ros::NodeHandle nh)
+{
+  // profile cloud publisher for PCL point clouds
+  pub = nh.advertise<pcl::PointCloud<pcl::PointXYZ>>("Y_profiles", 1);
+
+  // deepest point marker publisher
+  mkr_pub = nh.advertise<visualization_msgs::Marker>("deepest_point", 0);
+
+  // position publisher
+  pos_pub = nh.advertise<geometry_msgs::Twist>("/cnc_interface/cmd", 1);
+
+  // joint state publisher
+  jsp_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 1);
+
+
+}
+
+/*
+ * This handles one scan line, published by the scanner driver.
+ * Transform it to world coordinate, publish the concatenated point cloud so far.
+ */
+void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
+{
+  // The publisher is initialised in main
+  pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
+
+  // Only ros cloud can be transformed!
+  tf::TransformListener listener;
+  tf::StampedTransform  stransform;
+  try
+  {
+    listener.waitForTransform(world_frame,
+                              ros_cloud->header.frame_id,
+                              ros::Time::now(),
+                              ros::Duration(0.3));
+    listener.lookupTransform (world_frame,
+                              ros_cloud->header.frame_id,
+                              ros::Time(0),
+                              stransform);
+  }
+  catch (tf::TransformException ex)
+  {
+    ROS_ERROR("%s",ex.what());
+  }
+
+  sensor_msgs::PointCloud2 transformed_ros_cloud;
+  pcl_ros::transformPointCloud(world_frame,
+                               stransform,
+                               *ros_cloud,
+                               transformed_ros_cloud);
+  /*
+   * pcl cloud is used because the operator += cannot work with ros cloud!
+   */
+  pcl::fromROSMsg(transformed_ros_cloud, pcl_cloud);
+  pcl_Y_cloud.header.frame_id = pcl_cloud.header.frame_id; // cannot be done away with; must keep
+  pcl_Y_cloud += pcl_cloud; // concatenate the front line to the cumulated point cloud
+  deepest_pt(pcl_cloud); // try to find the deepest point of this cross section
+  pub.publish(pcl_Y_cloud);
+}
+
+void setupSubscribers(ros::NodeHandle nh)
+{
+  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
+
 }
 
 int getrosparams(ros::NodeHandle pnh)
@@ -99,14 +199,16 @@ int main(int argc, char* argv[])
   ros::init(argc, argv, "cncweld_core_node");
   ros::NodeHandle nh, pnh("~");
 
-  jsp_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 1);
-
   // check required parameters
   if (!pnh.hasParam("port"))
   {
     ROS_FATAL("Parameter 'port' missing. Cannot continue.");
     return -1;
   }
+
+  setupPublishers(ros::NodeHandle nh);
+
+  setupSubscribers(ros::NodeHandle nh);
 
   // Get parameters from launch file
   getrosparams(pnh);
@@ -123,28 +225,4 @@ int main(int argc, char* argv[])
 
   homeGrbl();
 
-  // After 'home', do something useful
-  // The laser scanner driver should have been started by the launch file
-  // Move to the starting point for scanning, and save its position
-  // Subscribe the laser scanner point cloud
-  // Switch on the laser of the scanner
-  // An infinite loop to 
-  // 1. Query Grbl for CNC positions and publish them as jointStates
-  // 2. Exit the loop when destination reached and switch off the scanner
-  // 
-  // Instruct Grbl to go back to the starting point
-  // Construct a G-Code program for the welding track
-  // Send the G-Code program to Grbl and switch on the welding torch
-  // Go into another loop to query Grbl for positions and publish them as
-  // jointStates.
-  // Exit the loop when destination reached
-
-  // Most of the useful works should also be done in callbacks
-  // that is to handle events. One of the major events is the receipt of a
-  // point cloud from the laser scanner.
-  // 1. When /profiles point clouds callback, transform it and publish it.
-  //    At the same time, work out the Grbl state and decide if send new target
-  //    of movement.
-  // 2. Save the deepest point of every received point cloud.
-  // 3. Finish the loop when the point cloud reached the destination (end point).
 }
