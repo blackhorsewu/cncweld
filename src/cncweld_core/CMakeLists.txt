@@ -57,6 +57,7 @@ catkin_package(
     include
   LIBRARIES
     AsyncSerial
+    SimpleSerial
     Grbl
     cncweld_core
   CATKIN_DEPENDS
@@ -96,6 +97,11 @@ add_library(
   src/AsyncSerial.cpp
 )
 
+add_library(
+  SimpleSerial
+  src/SimpleSerial.cpp
+)
+
 # add_library(
 #  Grbl
   #src/grbl_interface.cpp
@@ -109,6 +115,7 @@ add_library(
 target_link_libraries(
   ${PROJECT_NAME}_node
   AsyncSerial
+  SimpleSerial
 #  Grbl
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <termios.h>
 
-#include "AsyncSerial.h"
+#include "SimpleSerial.h"
 using namespace std;
 
 // ros parameters
@@ -18,6 +18,8 @@ int xmin, ymin, zmin;
 int xmax, ymax, zmax;
 int xspeed, yspeed, zspeed;
 int xsteps, ysteps, zsteps;
+
+string input_line;
 
 // static int serial;
 struct termios SerialPortSettings;
@@ -51,8 +53,10 @@ int getrosparams(ros::NodeHandle pnh)
 }
 
 // the serial port must be setup HERE first
-CallbackAsyncSerial serial("/dev/ttyACM0", 115200);
+// Open GRBL serial port. This is a GRBL specific program.
+SimpleSerial serial("/dev/ttyACM0", 115200);
 
+/* Do not need callback for Synchronous serial
 void received(const char *data, unsigned int len)
 {
     // cout << "Received " << len << " characters: ";
@@ -69,6 +73,7 @@ void received(const char *data, unsigned int len)
     }
     cout.flush();//Flush screen buffer
 }
+*/
 
 int setGrbl()
 {
@@ -77,29 +82,41 @@ int setGrbl()
 
     // set the steps per mm
     serial.writeString("$100=" + to_string(xsteps) + "\n");
+    cout << "Received (2): " << serial.readLine() << " : end" << endl;
     serial.writeString("$101=" + to_string(ysteps) + "\n");
+    cout << "Received (3): " << serial.readLine() << " : end" << endl;
     serial.writeString("$102=" + to_string(zsteps) + "\n");
+    cout << "Received (4): " << serial.readLine() << " : end" << endl;
 
     ROS_INFO("Steps set.");
 
     // set the maximum speed mm/min
     serial.writeString("$110=" + to_string(xspeed) + "\n");
+    cout << "Received (5): " << serial.readLine() << " : end" << endl;
     serial.writeString("$111=" + to_string(yspeed) + "\n");
+    cout << "Received (6): " << serial.readLine() << " : end" << endl;
     serial.writeString("$112=" + to_string(zspeed) + "\n");
+    cout << "Received (7): " << serial.readLine() << " : end" << endl;
 
     ROS_INFO("Speeds set.");
 
     // set the maximum acceleration mm/sec^2
     serial.writeString("$120=" + to_string(xaccel) + "\n");
+    cout << "Received (8): " << serial.readLine() << " : end" << endl;
     serial.writeString("$121=" + to_string(yaccel) + "\n");
+    cout << "Received (9): " << serial.readLine() << " : end" << endl;
     serial.writeString("$122=" + to_string(zaccel) + "\n");
+    cout << "Received (10): " << serial.readLine() << " : end" << endl;
 
     ROS_INFO("Accelerations set.");
 
     // Set the maximum travel distance mm
     serial.writeString("$130=" + to_string(xmax - xmin) + "\n");
+    cout << "Received (11): " << serial.readLine() << " : end" << endl;
     serial.writeString("$131=" + to_string(ymax - ymin) + "\n");
+    cout << "Received (12): " << serial.readLine() << " : end" << endl;
     serial.writeString("$132=" + to_string(zmax - zmin) + "\n");
+    cout << "Received (13): " << serial.readLine() << " : end" << endl;
 
     ROS_INFO("Travels set.");
 
@@ -117,7 +134,17 @@ int homeGrbl()
 
   try
   {
+    // serial.writeString("$$\n");
+    // cout << "Received (4): " << serial.readLine() << " : end" << endl;
+
+    // serial.writeString("?\n");
+    // cout << "Received: " << serial.readLine() << " : end" << endl;
     serial.writeString("$H\n");
+    sleep(10);
+    input_line = serial.readLine();
+    while (input_line != "ok")
+      input_line = serial.readLine();
+    cout << "Received (4): " << input_line << " : end" << endl;
   }
   catch(const std::exception& e)
   {
@@ -145,62 +172,20 @@ int main(int argc, char* argv[])
   // Get parameters from launch file
   getrosparams(pnh);
 
-  // setup the serial port first 
-  // SimpleSerial serial(devname, baudrate);
-  ROS_INFO("Going to set callback.");
-  serial.setCallback(received);
-  ROS_INFO("Finish set callback.");
+  // Before doing anything, wake up Grbl
+  ROS_INFO("waking up Grbl");
+  serial.writeString("\n");
 
-  termios stored_settings;
-  tcgetattr(0, &stored_settings);
-  termios new_settings = stored_settings;
-  new_settings.c_lflag &= (~ICANON);
-  new_settings.c_lflag &= (~ISIG); // don't automatically handle control-C
-  new_settings.c_lflag &= ~(ECHO); // no echo
-  tcsetattr(0, TCSANOW, &new_settings);
+  sleep(2); // Wait for Grbl to initialize
 
-  cout<<"\e[2J\e[1;1H"; //Clear screen and put cursor to 1;1
+  ROS_INFO("Grbl woke up");
+  cout << "Received (1) : " << serial.readLine() << " : end" << endl;
+  cout << "Received (2) : " << serial.readLine() << " : end" << endl;
+  cout << "Received (3) : " << serial.readLine() << " : end" << endl;
 
-  for(;;)
-  {
-    if(serial.errorStatus() || serial.isOpen()==false)
-    {
-      cerr<<"Error: serial port unexpectedly closed"<<endl;
-      break;
-    }
-    char c;
-    cin.get(c); //blocking wait for standard input
-    if(c==3) //if Ctrl-C
-    {
-      cin.get(c);
-      switch(c)
-      {
-        case 3:
-          serial.write(&c,1);//Ctrl-C + Ctrl-C, send Ctrl-C
-          break;
-        case 'x': //fall-through
-        case 'X':
-          goto quit;//Ctrl-C + x, quit
-        default:
-          serial.write(&c,1);//Ctrl-C + any other char, ignore
-      }
-    } else serial.write(&c,1);
-  }
-  quit:
-//    serial.close();
-  // Setup GRBL with these parameters
-  setGrbl();
+  // setGrbl(); // May be it should not be setup every time.
 
-  ROS_INFO("Finish setGrbl, going to home.");
+  // ROS_INFO("Finish setGrbl, going to home.");
   homeGrbl();
 
-  try
-  {
-    tcsetattr(0, TCSANOW, &stored_settings);
-  }
-  catch(const std::exception& e)
-  {
-    std::cerr << e.what() << '\n';
-  }
-  
 }
