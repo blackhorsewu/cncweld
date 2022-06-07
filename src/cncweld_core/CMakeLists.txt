@@ -56,7 +56,6 @@ catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
-    AsyncSerial
     SimpleSerial
     Grbl
     cncweld_core
@@ -93,19 +92,9 @@ add_executable(
   src/cncweld_core_node.cpp)
 
 add_library(
-  AsyncSerial
-  src/AsyncSerial.cpp
-)
-
-add_library(
   SimpleSerial
   src/SimpleSerial.cpp
 )
-
-# add_library(
-#  Grbl
-  #src/grbl_interface.cpp
-#)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -114,9 +103,7 @@ add_library(
 ## Specify libraries to link a library or executable target against
 target_link_libraries(
   ${PROJECT_NAME}_node
-  AsyncSerial
   SimpleSerial
-#  Grbl
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
