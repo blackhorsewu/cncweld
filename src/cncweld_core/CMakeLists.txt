@@ -6,6 +6,7 @@ add_compile_options(-std=c++11 -lboost_system)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  pcl_ros
   std_msgs
 )
 
