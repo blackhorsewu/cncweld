@@ -99,6 +99,28 @@ void initJointStates()
 }
 
 /*
+ * Glabal Variables for Status and Position
+ */
+enum status { Startup, Alarm, Running, Idle,  OK, Error };
+status Status;
+struct position
+{
+  struct linear
+  {
+    double X;
+    double Y;
+    double Z;
+  };
+  
+  struct angular
+  {
+    double A;
+    double B;
+    double C;
+  };
+};
+
+/*
  * Publish a Twist topic to cnc_interface to move to the specified position.
  *
  * It should not be done in this way, but just do it for the time being to test
@@ -370,17 +392,20 @@ int main(int argc, char* argv[])
 
   initJointStates();
 
+  Status = Startup;
+
   // Before doing anything, wake up Grbl
   serial.writeString("\n\n");
-  sleep(2); // Wait for Grbl to initialize
-  ROS_INFO("Grbl woke up");
-  cout << "Received (1) : " << serial.readLine() << " : end" << endl;
-  cout << "Received (2) : " << serial.readLine() << " : end" << endl;
-  cout << "Received (3) : " << serial.readLine() << " : end" << endl;
+  // sleep(2); // Wait for Grbl to initialize
+  // ROS_INFO("Grbl woke up");
+  input_line = serial.readLine();
+  cout << "Received (1) : " << input_line << " : end" << endl;
+  //cout << "Received (2) : " << serial.readLine() << " : end" << endl;
+  //cout << "Received (3) : " << serial.readLine() << " : end" << endl;
 
-  homeGrbl();
+//  homeGrbl();
 
   // Try to move to somewhere
-  move_scanner_to(520, -50, -20);
+//  move_scanner_to(520, -50, -20);
 
 }
