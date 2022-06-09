@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 
   string inString;
 
-  serial << "\n\n" << endl; // Try to wake up Grbl
+  serial << endl ; // Try to wake up Grbl
 
   while( serial.rdbuf()->in_avail() == 0 ) // Wait for character
   {
@@ -184,5 +184,8 @@ int main(int argc, char** argv)
     }
   }
   else cout << "Sorry, no match found!" << endl;
+
+  serial.Close();
+
   return 0 ;   
 }

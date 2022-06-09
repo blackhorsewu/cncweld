@@ -17,7 +17,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
                          thing up by 16.8mm.
 -->
 
-<robot name="cncweld" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="robot_description" xmlns:xacro="http://ros.org/wiki/xacro">
 
 <link name="world" />
 
@@ -43,7 +43,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/base_link.STL" />
+          filename="package://cncweld_description/meshes/base_link.STL" />
       </geometry>
       <material
         name="">
@@ -57,7 +57,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/base_link.STL" />
+          filename="package://cncweld_description/meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -74,7 +74,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/X_link.STL" />
+          filename="package://cncweld_description/meshes/X_link.STL" />
       </geometry>
       <material
         name="">
@@ -88,7 +88,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/X_link.STL" />
+          filename="package://cncweld_description/meshes/X_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -124,7 +124,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/Y_link.STL" />
+          filename="package://cncweld_description/meshes/Y_link.STL" />
       </geometry>
       <material
         name="">
@@ -138,7 +138,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/Y_link.STL" />
+          filename="package://cncweld_description/meshes/Y_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -174,7 +174,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/Z_link.STL" />
+          filename="package://cncweld_description/meshes/Z_link.STL" />
       </geometry>
       <material
         name="">
@@ -188,7 +188,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/Z_link.STL" />
+          filename="package://cncweld_description/meshes/Z_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -233,7 +233,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/torch.STL" />
+          filename="package://cncweld_description/meshes/torch.STL" />
       </geometry>
       <material
         name="">
@@ -247,7 +247,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/torch.STL" />
+          filename="package://cncweld_description/meshes/torch.STL" />
       </geometry>
     </collision>
   </link>

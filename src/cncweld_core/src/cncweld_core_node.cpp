@@ -24,16 +24,15 @@
 #include <moveit_visual_tools/moveit_visual_tools.h>
 #include <rviz_visual_tools/rviz_visual_tools.h>
 
+#include <SerialStream.h>
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
 #include <termios.h>
-
-#include "SimpleSerial.h"
-
+#include <regex>
 
 using namespace std;
-
+using namespace LibSerial;
 
 // ros parameters for GRBL
 string devname;
@@ -83,9 +82,132 @@ double target_x = 0.0; // mm
 double start_x = -0.85; // mm
 double x_step = 30.0; // mm
 
-// the serial port must be setup HERE first
-// Open GRBL serial port. This is a GRBL specific program.
-SimpleSerial serial("/dev/ttyACM0", 115200);
+SerialStream serial;
+
+enum grblCmd { Homing, Wakeup, ViewSettings };
+
+void initSerial()
+{
+  serial.Open( "/dev/ttyACM0" );
+  if ( !serial.good() )
+  {
+    std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] "
+              << "Error: Could not open serial port."
+              << std::endl ;
+    exit(1) ;
+  }
+
+  serial.SetBaudRate(SerialStreamBuf::BAUD_115200) ;
+  if ( !serial.good() )
+  {
+    std::cerr << "Error: Could not set the baud rate." << std::endl ;
+    exit(1) ;
+  }
+
+  cout << "Serial port to GRBL setup completed." << endl;
+
+}
+
+void waitGrblResponse()
+{
+  string inString;
+
+  while( serial.rdbuf()->in_avail() == 0 ) // Wait for character
+  {
+      usleep(100000) ; // 100 milli second or 0.1 second
+  }
+
+  inString = "";
+  while( serial.rdbuf()->in_avail() > 0  )
+  {
+    char next_byte;
+    serial.get(next_byte);
+    inString += next_byte;
+    if ( next_byte == '\n' )
+      {
+        cout << inString;
+        inString = "";
+      }
+  }
+
+}
+
+void cmdGrbl(grblCmd cmd)
+{
+  switch (cmd) {
+    case Wakeup:
+      cout << "GRBL waking up ..." << endl;
+      serial << endl;
+      break;
+    case Homing:
+      cout << "GRBL Homing ..." << endl;
+      serial << "$H" << endl;
+      break;
+    case ViewSettings:
+      cout << "GRBL Settings ..." << endl;
+      serial << "$$" << endl;
+      break;
+    default:
+      break;
+  }
+  waitGrblResponse();
+}
+
+/*
+ * Glabal Variables for Status and Position
+ */
+enum status { Startup, Alarm, Running, Idle,  OK, Error };
+status Status;
+struct Position
+{
+    double X;
+    double Y;
+    double Z;
+  
+    double A;
+    double B;
+    double C;
+};
+
+struct Position position;
+
+void inqGrbl()
+{
+  string inString;
+
+  serial << "?" << endl; // send an inquiry request to GRBL
+
+  while( serial.rdbuf()->in_avail() == 0 ) // Wait for response
+  {
+      usleep(100000) ; // 100 milli second or 0.1 second
+  }
+
+  inString = "";
+  while( serial.rdbuf()->in_avail() > 0  ) // Read the response
+  {
+    char next_byte;
+    serial.get(next_byte);
+    inString += next_byte;
+    if ( next_byte == '\n' ) break;
+  }
+
+  cout << inString;
+
+  regex str_expr("<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
+  smatch sm;
+  if (regex_search(inString, sm, str_expr ))
+  {
+      cout << sm[1] << endl;
+      if (sm[1] == "Idle") Status = Idle;
+      if (sm[1] == "Run") Status = Running;
+      
+      position.X = stod(sm[2]); cout << sm[2] << endl;
+      position.Y = stod(sm[3]); cout << sm[3] << endl;
+      position.Z = stod(sm[4]); cout << sm[4] << endl;
+  }
+  else cout << "Sorry, no match found!" << endl;
+
+}
 
 void initJointStates()
 {
@@ -98,28 +220,19 @@ void initJointStates()
     jointState.position.push_back(0.0);
 }
 
-/*
- * Glabal Variables for Status and Position
- */
-enum status { Startup, Alarm, Running, Idle,  OK, Error };
-status Status;
-struct position
+void publishJointState()
 {
-  struct linear
-  {
-    double X;
-    double Y;
-    double Z;
-  };
-  
-  struct angular
-  {
-    double A;
-    double B;
-    double C;
-  };
-};
+  jointState.header.stamp = ros::Time::now();
+  jointState.position[0] = (position.X + 90) / 1e3;
+  jointState.position[1] = position.Y / 1e3;
+  jointState.position[2] = position.Z / 1e3;
+  jointState.position[3] = position.A / 1e3;
 
+  cout << "X: " << jointState.position[0] << endl;
+  cout << "Y: " << jointState.position[1] << endl;
+  cout << "Z: " << jointState.position[2] << endl;
+  // jsp_pub.publish(jointState);
+}
 /*
  * Publish a Twist topic to cnc_interface to move to the specified position.
  *
@@ -171,7 +284,7 @@ void move_scanner_to(double x, double y, double z)
 
   cout << gcode;
 
-  serial.writeString(gcode);
+//  serial.writeString(gcode);
 
   sleep(2);
   // serial.writeString("?");
@@ -184,7 +297,7 @@ void move_scanner_to(double x, double y, double z)
     input_line = serial.readLine();
   }
   */
-  cout << "Received (5): " << serial.readLine() << " : end" << endl;
+//  cout << "Received (5): " << serial.readLine() << " : end" << endl;
 
   cout << "G-Code sent." << endl;
 }
@@ -255,7 +368,7 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
   // There should be another one to move the torch to.
   // The difference is the position in the z direction.
 
-  publish_deepest_pt(pointcloud[dpst]);
+  // publish_deepest_pt(pointcloud[dpst]);
 
 }
 
@@ -299,7 +412,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
   pcl_Y_cloud.header.frame_id = pcl_cloud.header.frame_id; // cannot be done away with; must keep
   pcl_Y_cloud += pcl_cloud; // concatenate the front line to the cumulated point cloud
   deepest_pt(pcl_cloud); // try to find the deepest point of this cross section
-  pub.publish(pcl_Y_cloud);
+  // pub.publish(pcl_Y_cloud);
 }
 
 int getrosparams(ros::NodeHandle pnh)
@@ -330,29 +443,6 @@ int getrosparams(ros::NodeHandle pnh)
   return(1);
 }
 
-
-int homeGrbl()
-{
-  try
-  {
-    serial.writeString("$H\n"); // Send the code
-     // Wait at least for 10 seconds before expect to receive any response
-    sleep(10);
-    cout << "Received (4): " << serial.readLine() << " : end" << endl;
-/*
-    input_line = serial.readLine(); // wait for
-    while (input_line != "ok")
-      input_line = serial.readLine();
-    cout << "Received (4): " << input_line << " : end" << endl;
-*/
-  }
-  catch(const std::exception& e)
-  {
-    std::cerr << e.what() << '\n';
-  }
-  return(1);
-}
-
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "cncweld_core_node");
@@ -364,6 +454,8 @@ int main(int argc, char* argv[])
     ROS_FATAL("Parameter 'port' missing. Cannot continue.");
     return -1;
   }
+
+  initSerial( );
 
   // Point Cloud topic
   std::string cloud_topic;
@@ -390,22 +482,25 @@ int main(int argc, char* argv[])
   // Get parameters from launch file
   getrosparams(pnh);
 
+  cmdGrbl(Wakeup);
+  cmdGrbl(ViewSettings);
+  cmdGrbl(Homing);
+
   initJointStates();
 
   Status = Startup;
 
-  // Before doing anything, wake up Grbl
-  serial.writeString("\n\n");
-  // sleep(2); // Wait for Grbl to initialize
-  // ROS_INFO("Grbl woke up");
-  input_line = serial.readLine();
-  cout << "Received (1) : " << input_line << " : end" << endl;
-  //cout << "Received (2) : " << serial.readLine() << " : end" << endl;
-  //cout << "Received (3) : " << serial.readLine() << " : end" << endl;
-
-//  homeGrbl();
-
+  ros::Rate loop_rate(1);
+  while (ros::ok())
+  {
+    inqGrbl(); // get GRBL status 10 times a second.
+    // should publish the jointState
+    publishJointState();
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+  
   // Try to move to somewhere
 //  move_scanner_to(520, -50, -20);
-
+  serial.Close();
 }

@@ -4,19 +4,19 @@
 
 <!-- 1. Display the RViz -->
   <arg name="cncweld" />
-  <param name="robot_description" command="xacro $(find cnc_description)/urdf/cnc.xacro" />
+  <param name="robot_description" command="xacro $(find cncweld_description)/urdf/cncweld.xacro" />
 
   <!-- Use the joint state publisher specially written for cncweld
-     This will change to be built-in in cncweld_core -->    
+     This will change to be built-in in cncweld_core     
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"
-    output="screen" />
+    output="screen" /> -->
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cnc_description)/rviz/urdf.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cncweld_description)/rviz/urdf.rviz" />
 
 <!-- 2. Setup GRBL in cncweld_core to move the machine -->
-  <node name="cncweld_core_node" pkg="cncweld_core" type="cncweld_core_node" output="screen" />
+  <node name="cncweld_core_node" pkg="cncweld_core" type="cncweld_core_node" output="screen" >
   <!-- Parameters for GRBL settings -->
   
     <!-- Serial Port settings -->
@@ -44,12 +44,12 @@
     <param name="z_steps" type="int" value="200" />
   </node>
 
-<!-- 3. Starts the Keyence laser scanner -->
-  <node name="keyence_driver_node" pkg="keyence_experimental" type="keyence_driver_node" />
-    <param name="controller_port" type="string" value="192.168.0.6" />
-    <param name="frame_id" type="string" value="lj_v7200_optical_frame" />
+<!-- 3. Starts the Keyence laser scanner 
+  <node name="keyence_driver_node" pkg="keyence_experimental" type="keyence_driver_node" >
+    <param name="controller_ip" type="string" value="192.168.0.6" />
+    <param name="_frame_id" type="string" value="lj_v7200_optical_frame" />
   </node>
 
   <node name="concave_scanner" pkg="keyence_experimental" type="concave_scanner" />
-
+-->
 </launch>

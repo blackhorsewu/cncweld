@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="cnc" />
+  <arg name="cncweld" />
   <param 
     name="robot_description" 
-    command="xacro $(find cnc_description)/urdf/cnc.xacro" />
+    command="xacro $(find cncweld_description)/urdf/cncweld.xacro" />
 <!-- Use the joint state publisher specially written for CNC -->
   <node
     name="joint_state_publisher"
@@ -25,5 +25,5 @@
     name="rviz" 
     pkg="rviz" 
     type="rviz" 
-    args="-d $(find cnc_description)/rviz/urdf.rviz" />
+    args="-d $(find cncweld_description)/rviz/urdf.rviz" />
 </launch>
