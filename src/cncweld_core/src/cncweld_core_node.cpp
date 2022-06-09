@@ -490,10 +490,10 @@ int main(int argc, char* argv[])
 
   Status = Startup;
 
-  ros::Rate loop_rate(1);
+  ros::Rate loop_rate(1); // get GRBL status 10 times a second.
   while (ros::ok())
   {
-    inqGrbl(); // get GRBL status 10 times a second.
+    inqGrbl();
     // should publish the jointState
     publishJointState();
     ros::spinOnce();
