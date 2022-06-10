@@ -57,7 +57,6 @@ ros::Publisher jsp_pub; // Joint State Publisher
 
 ros::Publisher pub;     // publisher for the cumulated cloud
 ros::Publisher mkr_pub; // publisher for the deepest points
-ros::Publisher pos_pub; // publisher for the position to move to
 
 int marker_id = 0;
 
@@ -132,6 +131,22 @@ void waitGrblResponse()
 
 }
 
+/*
+ * Global Variables for Status and Position
+ */
+enum status { Startup, Alarm, Running, Idle,  OK, Error };
+status Status;
+struct Position
+{
+    double X;
+    double Y;
+    double Z;
+  
+    double A;
+    double B;
+    double C;
+};
+
 void cmdGrbl(grblCmd cmd)
 {
   switch (cmd) {
@@ -153,22 +168,6 @@ void cmdGrbl(grblCmd cmd)
   waitGrblResponse();
 }
 
-/*
- * Glabal Variables for Status and Position
- */
-enum status { Startup, Alarm, Running, Idle,  OK, Error };
-status Status;
-struct Position
-{
-    double X;
-    double Y;
-    double Z;
-  
-    double A;
-    double B;
-    double C;
-};
-
 struct Position position;
 
 void inqGrbl()
@@ -179,7 +178,7 @@ void inqGrbl()
 
   while( serial.rdbuf()->in_avail() == 0 ) // Wait for response
   {
-      usleep(100000) ; // 100 milli second or 0.1 second
+      usleep(10000) ; // 100 milli second or 0.01 second
   }
 
   inString = "";
@@ -193,19 +192,35 @@ void inqGrbl()
 
   cout << inString;
 
-  regex str_expr("<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
+  regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
   smatch sm;
   if (regex_search(inString, sm, str_expr ))
   {
-      cout << sm[1] << endl;
+      //cout << sm[0] << endl;
+      if (sm[0] != "ok"){
       if (sm[1] == "Idle") Status = Idle;
       if (sm[1] == "Run") Status = Running;
       
-      position.X = stod(sm[2]); cout << sm[2] << endl;
-      position.Y = stod(sm[3]); cout << sm[3] << endl;
-      position.Z = stod(sm[4]); cout << sm[4] << endl;
+      position.X = stod(sm[2]);
+      position.Y = stod(sm[3]);
+      position.Z = stod(sm[4]);
+      position.A = 0.0;
+      }
   }
   else cout << "Sorry, no match found!" << endl;
+
+}
+
+void jumpTo(double x, double y, double z) // Jump to uses G00
+{
+  while (Status != Idle) inqGrbl();
+  cout << "Jumping to: " << x << ", " << y << ", " << z << endl;
+  serial <<"G00 X"+to_string(x)+" Y"+to_string(y)+" Z"+to_string(z)<< endl;
+  waitGrblResponse();
+}
+
+void moveTo() // Move to uses G01
+{
 
 }
 
@@ -214,24 +229,27 @@ void initJointStates()
   jointState.name.push_back("base_link_X_link_joint");
   jointState.name.push_back("X_link_Y_link_joint");
   jointState.name.push_back("Y_link_Z_link_joint");
-  jointState.name.push_back("Z_link_tool0_");
+  jointState.name.push_back("Z_link_tool0");
 
-  for (int i=0; i < 3; i++) // allocate memory and initialize joint values
+  for (int i=0; i < 4; i++) // allocate memory and initialize joint values
     jointState.position.push_back(0.0);
 }
 
 void publishJointState()
 {
+  inqGrbl();
   jointState.header.stamp = ros::Time::now();
-  jointState.position[0] = (position.X + 90) / 1e3;
+  jointState.position[0] = position.X / 1e3;
   jointState.position[1] = position.Y / 1e3;
   jointState.position[2] = position.Z / 1e3;
   jointState.position[3] = position.A / 1e3;
-
-  cout << "X: " << jointState.position[0] << endl;
-  cout << "Y: " << jointState.position[1] << endl;
-  cout << "Z: " << jointState.position[2] << endl;
-  // jsp_pub.publish(jointState);
+/*
+  cout << jointState.name[0] << " X: " << jointState.position[0] << endl;
+  cout << jointState.name[1] << " Y: " << jointState.position[1] << endl;
+  cout << jointState.name[2] << " Z: " << jointState.position[2] << endl;
+  cout << jointState.name[3] << " A: " << jointState.position[3] << endl;
+*/
+  jsp_pub.publish(jointState);
 }
 /*
  * Publish a Twist topic to cnc_interface to move to the specified position.
@@ -389,7 +407,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
     listener.waitForTransform(world_frame,
                               ros_cloud->header.frame_id,
                               ros::Time::now(),
-                              ros::Duration(0.3));
+                              ros::Duration(0.5));
     listener.lookupTransform (world_frame,
                               ros_cloud->header.frame_id,
                               ros::Time(0),
@@ -411,7 +429,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
   pcl::fromROSMsg(transformed_ros_cloud, pcl_cloud);
   pcl_Y_cloud.header.frame_id = pcl_cloud.header.frame_id; // cannot be done away with; must keep
   pcl_Y_cloud += pcl_cloud; // concatenate the front line to the cumulated point cloud
-  deepest_pt(pcl_cloud); // try to find the deepest point of this cross section
+  // deepest_pt(pcl_cloud); // try to find the deepest point of this cross section
   // pub.publish(pcl_Y_cloud);
 }
 
@@ -470,14 +488,10 @@ int main(int argc, char* argv[])
   // deepest point marker publisher
   mkr_pub = nh.advertise<visualization_msgs::Marker>("deepest_point", 0);
 
-  // position publisher
-  pos_pub = nh.advertise<geometry_msgs::Twist>("/cnc_interface/cmd", 1);
-
   // joint state publisher
   jsp_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 1);
 
   std::string topic = nh.resolveName(cloud_topic);
-  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
 
   // Get parameters from launch file
   getrosparams(pnh);
@@ -486,14 +500,20 @@ int main(int argc, char* argv[])
   cmdGrbl(ViewSettings);
   cmdGrbl(Homing);
 
+  jumpTo(0, 0, -35);
+  // Only scribe to the scanner point cloud after homing
+  // otherwise, no tf between world and lj_v7200_optical_frame
+  while (Status != Idle) inqGrbl();
+  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
+
   initJointStates();
 
   Status = Startup;
 
-  ros::Rate loop_rate(1); // get GRBL status 10 times a second.
+  ros::Rate loop_rate(10); // get GRBL status 10 times a second.
   while (ros::ok())
   {
-    inqGrbl();
+    // inqGrbl();
     // should publish the jointState
     publishJointState();
     ros::spinOnce();

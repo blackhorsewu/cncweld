@@ -44,12 +44,12 @@
     <param name="z_steps" type="int" value="200" />
   </node>
 
-<!-- 3. Starts the Keyence laser scanner 
+<!-- 3. Starts the Keyence laser scanner -->
   <node name="keyence_driver_node" pkg="keyence_experimental" type="keyence_driver_node" >
     <param name="controller_ip" type="string" value="192.168.0.6" />
-    <param name="_frame_id" type="string" value="lj_v7200_optical_frame" />
+    <param name="frame_id" type="string" value="lj_v7200_optical_frame" />
   </node>
-
+<!--
   <node name="concave_scanner" pkg="keyence_experimental" type="concave_scanner" />
 -->
 </launch>

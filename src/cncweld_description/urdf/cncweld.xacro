@@ -101,7 +101,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
     type="prismatic">
 
     <origin
-      xyz="0.0 0.0 0.083" rpy="0.0 0.0 0.0" />
+      xyz="0.09 0.0 0.083" rpy="0.0 0.0 0.0" />
 <!--
     <origin
       xyz="0.0 0.0 0.0998" rpy="0.0 0.0 0.0" /> -->
@@ -154,7 +154,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
       xyz="0.08 -0.058 -0.041" rpy="0.0 0.0 0.0" />
     -->
 <!--    <origin xyz="0.08 -0.10 -0.041" rpy="0.0 0.0 0.0" /> -->
-    <origin xyz="0.08 -0.10 -0.05" rpy="0.0 0.0 0.0" />
+    <origin xyz="0.08 -0.09 -0.05" rpy="0.0 0.0 0.0" />
     <parent
       link="X_link" />
     <child
