@@ -63,6 +63,32 @@ void publishJointState()
   jsp_pub.publish(jointState);
 }
 
+void received(const char *data, unsigned int len)
+{
+  responded = true;
+  vector<char> v(data,data+len);
+  string in_line(v.begin(), v.end());
+  cout << in_line;
+
+  regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
+  smatch sm;
+  if (regex_search(in_line, sm, str_expr ))
+  {
+      //cout << sm[0] << endl;
+      if (sm[0] != "ok"){
+      if (sm[1] == "Idle") Status = Idle;
+      if (sm[1] == "Run") Status = Running;
+      
+      position.X = stod(sm[2]);
+      position.Y = stod(sm[3]);
+      position.Z = stod(sm[4]);
+      position.A = 0.0;
+      }
+  }
+  // else cout << "Sorry, no match found!" << endl;
+
+}
+
 CallbackAsyncSerial serial("/dev/ttyACM0", 115200);
 
 void cmdGrbl(grblCmd cmd)
@@ -83,10 +109,12 @@ void cmdGrbl(grblCmd cmd)
     default:
       break;
   }
-  serial.writeString("?\n"); // send an inquiry request to GRBL
+  // serial.writeString("?\n"); // send an inquiry request to GRBL
+  // Wait for Grbl Response to the command just sent
   while (responded == false) usleep(100000); // wait for 0.01 second
-  // waitGrblResponse();
+
 }
+
 /*
 void inqGrbl()
 {
@@ -129,33 +157,6 @@ void inqGrbl()
 
 }
 */
-void received(const char *data, unsigned int len)
-{
-  responded = true;
-  vector<char> v(data,data+len);
-  string in_line(v.begin(), v.end());
-  cout << in_line;
-
-  regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
-  smatch sm;
-  if (regex_search(in_line, sm, str_expr ))
-  {
-      //cout << sm[0] << endl;
-      if (sm[0] != "ok"){
-      if (sm[1] == "Idle") Status = Idle;
-      if (sm[1] == "Run") Status = Running;
-      
-      position.X = stod(sm[2]);
-      position.Y = stod(sm[3]);
-      position.Z = stod(sm[4]);
-      position.A = 0.0;
-      }
-  }
-  // else cout << "Sorry, no match found!" << endl;
-
-}
-
-// serial.setCallback(received);
 
 int main(int argc, char* argv[])
 {
