@@ -6,6 +6,9 @@
  * Victor W H Wu
  * 5 June, 2022. (Sunday)
  * 
+ * Working
+ * 12 June, 2022. (Sunday)
+ * 
  */
 
 #include "AsyncSerial.h"
@@ -16,10 +19,13 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
+#include <std_msgs/String.h>
 
 using namespace std;
 
 ros::Publisher jsp_pub; // Joint State Publisher
+
+ros::Subscriber cmd_sub; // Grbl command Subscriber
 
 // Create an object of type "jointState"
 sensor_msgs::JointState jointState;
@@ -45,22 +51,19 @@ struct Position
 struct Position position;
 
 bool responded = false;
+bool startJspPub = false;
 
-void publishJointState()
+regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
+
+void initJointStates()
 {
-  // inqGrbl();
-  jointState.header.stamp = ros::Time::now();
-  jointState.position[0] = position.X / 1e3;
-  jointState.position[1] = position.Y / 1e3;
-  jointState.position[2] = position.Z / 1e3;
-  jointState.position[3] = position.A / 1e3;
-/*
-  cout << jointState.name[0] << " X: " << jointState.position[0] << endl;
-  cout << jointState.name[1] << " Y: " << jointState.position[1] << endl;
-  cout << jointState.name[2] << " Z: " << jointState.position[2] << endl;
-  cout << jointState.name[3] << " A: " << jointState.position[3] << endl;
-*/
-  jsp_pub.publish(jointState);
+  jointState.name.push_back("base_link_X_link_joint");
+  jointState.name.push_back("X_link_Y_link_joint");
+  jointState.name.push_back("Y_link_Z_link_joint");
+  jointState.name.push_back("Z_link_tool0");
+
+  for (int i=0; i < 4; i++) // allocate memory and initialize joint values
+    jointState.position.push_back(0.0);
 }
 
 void received(const char *data, unsigned int len)
@@ -68,25 +71,28 @@ void received(const char *data, unsigned int len)
   responded = true;
   vector<char> v(data,data+len);
   string in_line(v.begin(), v.end());
-  cout << in_line;
+  // cout << in_line;
 
-  regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
   smatch sm;
   if (regex_search(in_line, sm, str_expr ))
   {
-      //cout << sm[0] << endl;
-      if (sm[0] != "ok"){
+    //cout << sm[0] << endl;
+    if (sm[0] != "ok"){
       if (sm[1] == "Idle") Status = Idle;
       if (sm[1] == "Run") Status = Running;
-      
-      position.X = stod(sm[2]);
-      position.Y = stod(sm[3]);
-      position.Z = stod(sm[4]);
-      position.A = 0.0;
-      }
-  }
-  // else cout << "Sorry, no match found!" << endl;
 
+      if (startJspPub)
+      {
+        jointState.header.stamp = ros::Time::now();
+        jointState.position[0] = stod(sm[2]) / 1e3;
+        jointState.position[1] = stod(sm[3]) / 1e3;
+        jointState.position[2] = stod(sm[4]) / 1e3;
+        jointState.position[3] = 0.0;
+
+        jsp_pub.publish(jointState);
+      }
+    }
+  }
 }
 
 CallbackAsyncSerial serial("/dev/ttyACM0", 115200);
@@ -109,132 +115,50 @@ void cmdGrbl(grblCmd cmd)
     default:
       break;
   }
-  // serial.writeString("?\n"); // send an inquiry request to GRBL
   // Wait for Grbl Response to the command just sent
-  while (responded == false) usleep(100000); // wait for 0.01 second
+  while (responded == false) usleep(10000); // wait for 0.001 second
 
 }
 
-/*
-void inqGrbl()
+void cmdCb(const std_msgs::String::ConstPtr& msg)
 {
-  string inString;
-
-  serial << "?" << endl; // send an inquiry request to GRBL
-
-  while( serial.rdbuf()->in_avail() == 0 ) // Wait for response
-  {
-      usleep(10000) ; // 100 milli second or 0.01 second
-  }
-
-  inString = "";
-  while( serial.rdbuf()->in_avail() > 0  ) // Read the response
-  {
-    char next_byte;
-    serial.get(next_byte);
-    inString += next_byte;
-    if ( next_byte == '\n' ) break;
-  }
-
-  cout << inString;
-
-  regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
-  smatch sm;
-  if (regex_search(inString, sm, str_expr ))
-  {
-      //cout << sm[0] << endl;
-      if (sm[0] != "ok"){
-      if (sm[1] == "Idle") Status = Idle;
-      if (sm[1] == "Run") Status = Running;
-      
-      position.X = stod(sm[2]);
-      position.Y = stod(sm[3]);
-      position.Z = stod(sm[4]);
-      position.A = 0.0;
-      }
-  }
-  else cout << "Sorry, no match found!" << endl;
-
+  // The msg is a string of G-Code and can be sent to Grbl directly
+  serial.writeString(msg->data);
+  // Wait for Grbl Response
+  while (responded == false) usleep(10000); // wait for steps of 0.001 second
 }
-*/
 
 int main(int argc, char* argv[])
 {
-
   ros::init(argc, argv, "grbl_driver_node");
   ros::NodeHandle nh, pnh("~");
 
-  termios stored_settings;
-  tcgetattr(0, &stored_settings);
-  termios new_settings = stored_settings;
-  new_settings.c_lflag &= (~ICANON);
-  new_settings.c_lflag &= (~ISIG); // don't automatically handle control-C
-  new_settings.c_lflag &= ~(ECHO); // no echo
-  tcsetattr(0, TCSANOW, &new_settings);
+  string in_line="";
+  string cmd_topic = "grbl_cmd";
 
-  cout<<"\e[2J\e[1;1H"; //Clear screen and put cursor to 1;1
+  string cmd = nh.resolveName(cmd_topic);
 
   // joint state publisher
   jsp_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 1);
 
+  serial.setCallback(received);
 
-  try {
-    // CallbackAsyncSerial serial(argv[1],stoi(argv[2]));
-      serial.setCallback(received);
-/*
-      cout << "Waking GRBL up ..." << endl;
-      responded = false;
-      serial.writeString("\n");
-      cout << "End of Line sent out" << endl;
-*/
-    cmdGrbl(Wakeup);
-    cmdGrbl(ViewSettings);
-    cmdGrbl(Homing);
-    // inqGrbl();
-    ros::Rate loop_rate(10); // get GRBL status 10 times a second
-/*    while (ros::ok)
-    {*/
-      responded = false;
-      serial.writeString("?\n"); // send an inquiry request to GRBL
-      while (responded == false) usleep(10000); // wait for 0.01 second
-      /* ros::spinOnce();
-      loop_rate.sleep();
-    }*/
+  cmdGrbl(Wakeup);
+  cmdGrbl(ViewSettings);
+  cmdGrbl(Homing);
 
-    
-    for(;;)
-    {
-      if(serial.errorStatus() || serial.isOpen()==false)
-      {
-          cerr<<"Error: serial port unexpectedly closed"<<endl;
-          break;
-      }
-      char c;
-      // cout << "Enter character to send" << endl;
-      cin.get(c); //blocking wait for standard input
-      // cout << "Transmitting character " << c << endl;
-      if(c==3) //if Ctrl-C
-      {
-        cin.get(c);
-        switch(c)
-        {
-          case 3:
-            serial.write(&c,1);//Ctrl-C + Ctrl-C, send Ctrl-C
-          break;
-          case 'x': //fall-through
-          case 'X':
-            goto quit;//Ctrl-C + x, quit
-          default:
-            serial.write(&c,1);//Ctrl-C + any other char, ignore
-        }
-      } else serial.write(&c,1);
-    }
-    quit:
-      serial.close();
-    
-  } catch (std::exception& e) {
-    cerr<<"Exception: "<<e.what()<<endl;
+  initJointStates(); // Initialise the joint States before publishing
+  startJspPub = true;
+
+  cmd_sub = nh.subscribe(cmd_topic, 1, cmdCb);
+  // inqGrbl();
+  ros::Rate loop_rate(20); // get GRBL status 10 times a second
+  while (ros::ok)
+  {
+    responded = false;
+    serial.writeString("?\n"); // send an inquiry request to GRBL
+    while (responded == false) usleep(1000); // wait for 0.01 second
+    ros::spinOnce();
+    loop_rate.sleep();
   }
-
-  tcsetattr(0, TCSANOW, &stored_settings);
 }
