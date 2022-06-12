@@ -77,11 +77,12 @@ void received(const char *data, unsigned int len)
   if (regex_search(in_line, sm, str_expr ))
   {
     //cout << sm[0] << endl;
-    if (sm[0] != "ok"){
+    if (sm[0] != "ok"){ // it should then be either Idle or Run
       if (sm[1] == "Idle") Status = Idle;
       if (sm[1] == "Run") Status = Running;
 
-      if (startJspPub)
+      // if it has no position data do not publish it
+      if ((startJspPub) && (sizeof(sm)==5))
       {
         jointState.header.stamp = ros::Time::now();
         jointState.position[0] = stod(sm[2]) / 1e3;
@@ -157,7 +158,7 @@ int main(int argc, char* argv[])
   {
     responded = false;
     serial.writeString("?\n"); // send an inquiry request to GRBL
-    while (responded == false) usleep(1000); // wait for 0.01 second
+    while (responded == false) usleep(10000); // wait for 0.001 second
     ros::spinOnce();
     loop_rate.sleep();
   }
