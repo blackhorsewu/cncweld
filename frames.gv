@@ -1,0 +1,14 @@
+digraph G {
+"lj_v7200_optical_frame" -> "lj_v7200_frame"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1655027586.777 sec old)\nBuffer length: 0.000 sec\n"];
+"tool0" -> "lj_v7200_optical_frame"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1655027586.777 sec old)\nBuffer length: 0.000 sec\n"];
+"Z_link" -> "tool0"[label="Broadcaster: /robot_state_publisher\nAverage rate: 9.485 Hz\nMost recent transform: 1655027586.771 ( 0.006 sec old)\nBuffer length: 4.850 sec\n"];
+"tool0" -> "torch"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1655027586.777 sec old)\nBuffer length: 0.000 sec\n"];
+"world" -> "base_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1655027586.777 sec old)\nBuffer length: 0.000 sec\n"];
+"X_link" -> "Y_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 9.485 Hz\nMost recent transform: 1655027586.771 ( 0.006 sec old)\nBuffer length: 4.850 sec\n"];
+"base_link" -> "X_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 9.485 Hz\nMost recent transform: 1655027586.771 ( 0.006 sec old)\nBuffer length: 4.850 sec\n"];
+"Y_link" -> "Z_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 9.485 Hz\nMost recent transform: 1655027586.771 ( 0.006 sec old)\nBuffer length: 4.850 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1655027586.777"[ shape=plaintext ] ;
+ }->"world";
+}

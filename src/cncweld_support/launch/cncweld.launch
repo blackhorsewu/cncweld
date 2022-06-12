@@ -15,7 +15,10 @@
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cncweld_description)/rviz/urdf.rviz" />
 
-<!-- 2. Setup GRBL in cncweld_core to move the machine -->
+<!-- 2. Test the GRBL Driver node -->
+  <node name="grbl_driver_node" pkg="grbl_driver" type="grbl_driver_node" output="screen" />
+
+<!-- 3. Setup GRBL in cncweld_core to move the machine -->
   <node name="cncweld_core_node" pkg="cncweld_core" type="cncweld_core_node" output="screen" >
   <!-- Parameters for GRBL settings -->
   
@@ -44,7 +47,7 @@
     <param name="z_steps" type="int" value="200" />
   </node>
 
-<!-- 3. Starts the Keyence laser scanner -->
+<!-- 4. Starts the Keyence laser scanner -->
   <node name="keyence_driver_node" pkg="keyence_experimental" type="keyence_driver_node" >
     <param name="controller_ip" type="string" value="192.168.0.6" />
     <param name="frame_id" type="string" value="lj_v7200_optical_frame" />

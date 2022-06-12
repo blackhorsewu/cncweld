@@ -18,4 +18,10 @@
 <!-- 2. Test the GRBL Driver node -->
   <node name="grbl_driver_node" pkg="grbl_driver" type="grbl_driver_node" output="screen" />
 
+<!-- 3. Starts the Keyence laser scanner -->
+  <node name="keyence_driver_node" pkg="keyence_experimental" type="keyence_driver_node" >
+    <param name="controller_ip" type="string" value="192.168.0.6" />
+    <param name="frame_id" type="string" value="lj_v7200_optical_frame" />
+  </node>
+
 </launch>
