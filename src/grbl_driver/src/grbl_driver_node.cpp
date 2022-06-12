@@ -57,9 +57,9 @@ regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)
 
 void initJointStates()
 {
-  jointState.name.push_back("base_link_X_link_joint");
   jointState.name.push_back("X_link_Y_link_joint");
   jointState.name.push_back("Y_link_Z_link_joint");
+  jointState.name.push_back("base_link_X_link_joint");
   jointState.name.push_back("Z_link_tool0");
 
   for (int i=0; i < 4; i++) // allocate memory and initialize joint values
@@ -82,12 +82,14 @@ void received(const char *data, unsigned int len)
       if (sm[1] == "Run") Status = Running;
 
       // if it has no position data do not publish it
-      if ((startJspPub) && (sizeof(sm)==5))
+//      if ((startJspPub) && (sizeof(sm)==5))
+//cout << sizeof(sm)/sizeof(sm[0]) << endl;
+      if ((startJspPub))
       {
         jointState.header.stamp = ros::Time::now();
-        jointState.position[0] = stod(sm[2]) / 1e3;
-        jointState.position[1] = stod(sm[3]) / 1e3;
-        jointState.position[2] = stod(sm[4]) / 1e3;
+        jointState.position[0] = stod(sm[4]) / 1e3;
+        jointState.position[1] = stod(sm[2]) / 1e3;
+        jointState.position[2] = stod(sm[3]) / 1e3;
         jointState.position[3] = 0.0;
 
         jsp_pub.publish(jointState);
