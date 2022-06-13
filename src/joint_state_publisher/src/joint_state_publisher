@@ -75,7 +75,8 @@ class JointStatePublisher():
         # /cnc_interface/position of type Twist, that contains both position and orientation.
         # Therefore, it is only necessary to subscribe to this topic.
         # So, declare a subscriber to this topic in the statement below:
-        rospy.Subscriber('cnc_interface/position', Twist, self.source_cb)
+        # rospy.Subscriber('cnc_interface/position', Twist, self.source_cb)
+        rospy.Subscriber('grbl_pos', Twist, self.source_cb)
 
         # Declare a publisher for the topic /joint_states, of type JointState.
         self.pub = rospy.Publisher('joint_states', JointState)

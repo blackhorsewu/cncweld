@@ -19,16 +19,21 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
+#include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
 
 using namespace std;
 
 ros::Publisher jsp_pub; // Joint State Publisher
+ros::Publisher pos_pub; // Position Publisher
 
 ros::Subscriber cmd_sub; // Grbl command Subscriber
 
 // Create an object of type "jointState"
 sensor_msgs::JointState jointState;
+
+geometry_msgs::Twist position;
+
 
 /*
  * Global Variables for Status and Position
@@ -37,6 +42,7 @@ enum status { Startup, Alarm, Running, Idle,  OK, Error };
 enum grblCmd { Homing, Wakeup, ViewSettings };
 
 status Status;
+/*
 struct Position
 {
     double X;
@@ -47,8 +53,8 @@ struct Position
     double B;
     double C;
 };
-
-struct Position position;
+*/
+// struct Position position;
 
 bool responded = false;
 bool startJspPub = false;
@@ -62,8 +68,12 @@ void initJointStates()
   jointState.name.push_back("base_link_X_link_joint");
   jointState.name.push_back("Z_link_tool0");
 
-  for (int i=0; i < 4; i++) // allocate memory and initialize joint values
-    jointState.position.push_back(0.0);
+//  for (int i=0; i < 4; i++) // allocate memory and initialize joint values
+//    jointState.position.push_back(0.0);
+  jointState.position.push_back(0.0);
+  jointState.position.push_back(0.0);
+  jointState.position.push_back(0.09);
+  jointState.position.push_back(0.0);
 }
 
 void received(const char *data, unsigned int len)
@@ -85,14 +95,24 @@ void received(const char *data, unsigned int len)
 //      if ((startJspPub) && (sizeof(sm)==5))
 //cout << sizeof(sm)/sizeof(sm[0]) << endl;
       if ((startJspPub))
+/*
       {
         jointState.header.stamp = ros::Time::now();
-        jointState.position[0] = stod(sm[4]) / 1e3;
-        jointState.position[1] = stod(sm[2]) / 1e3;
-        jointState.position[2] = stod(sm[3]) / 1e3;
+//        jointState.header.stamp = ros::Time(0);
+        jointState.position[0] = stod(sm[3]) / 1e3;
+        jointState.position[1] = stod(sm[4]) / 1e3;
+        jointState.position[2] = (stod(sm[2]) + 90) / 1e3;
         jointState.position[3] = 0.0;
 
         jsp_pub.publish(jointState);
+      }
+*/
+      {
+        position.linear.x = stod(sm[2]);
+        position.linear.y = stod(sm[3]);
+        position.linear.z = stod(sm[4]);
+        position.angular.x = 0.0;
+        pos_pub.publish(position);
       }
     }
   }
@@ -142,7 +162,10 @@ int main(int argc, char* argv[])
   string cmd = nh.resolveName(cmd_topic);
 
   // joint state publisher
-  jsp_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 1);
+  // jsp_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 1);
+
+  // position publisher
+  pos_pub = nh.advertise<geometry_msgs::Twist>("grbl_pos", 1);
 
   serial.setCallback(received);
 
