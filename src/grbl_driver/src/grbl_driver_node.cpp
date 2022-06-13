@@ -22,10 +22,17 @@
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
 
+#include <sstream>
+
 using namespace std;
 
+/* The Joint State Publisher here is not used (at least for the time being)
 ros::Publisher jsp_pub; // Joint State Publisher
+*/
+
 ros::Publisher pos_pub; // Position Publisher
+
+ros::Publisher status_pub; // Publish the Grbl status
 
 ros::Subscriber cmd_sub; // Grbl command Subscriber
 
@@ -78,18 +85,29 @@ void initJointStates()
 
 void received(const char *data, unsigned int len)
 {
+  std_msgs::String msg;
+
   responded = true;
   vector<char> v(data,data+len);
   string in_line(v.begin(), v.end());
-  // cout << in_line;
 
   smatch sm;
   if (regex_search(in_line, sm, str_expr ))
   {
     //cout << sm[0] << endl;
     if (sm[0] != "ok"){ // it should then be either Idle or Run
-      if (sm[1] == "Idle") Status = Idle;
-      if (sm[1] == "Run") Status = Running;
+      if (sm[1] == "Idle")
+      {
+        Status = Idle;
+        msg.data = "Idle";
+        status_pub.publish(msg);
+      }
+      if (sm[1] == "Run")
+      {
+        Status = Running;
+        msg.data = "Run";
+        status_pub.publish(msg);
+      }
 
       // if it has no position data do not publish it
 //      if ((startJspPub) && (sizeof(sm)==5))
@@ -166,6 +184,9 @@ int main(int argc, char* argv[])
 
   // position publisher
   pos_pub = nh.advertise<geometry_msgs::Twist>("grbl_pos", 1);
+
+  // status publisher
+  status_pub = nh.advertise<std_msgs::String>("grbl_status", 1);
 
   serial.setCallback(received);
 

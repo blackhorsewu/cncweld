@@ -19,6 +19,7 @@
 // Visualisation markers
 #include <visualization_msgs/Marker.h>
 #include <geometry_msgs/Twist.h>
+#include <std_msgs/String.h>
 
 // Visual Tools
 #include <moveit_visual_tools/moveit_visual_tools.h>
@@ -47,6 +48,8 @@ const static double KEYENCE_INFINITE_DISTANCE_VALUE_SI2 = -999.9970 / 1e3;
 ros::Publisher pub;     // publisher for the cumulated cloud
 ros::Publisher mkr_pub; // publisher for the deepest points
 
+ros::Publisher grbl_pub; // publisher for moving grbl
+
 int marker_id = 0;
 
 pcl::PointCloud<pcl::PointXYZ> pcl_Y_cloud; // cumulated cloud
@@ -71,7 +74,7 @@ double x_step = 30.0; // mm
  * Global Variables for Status and Position
  */
 enum status { Startup, Alarm, Running, Idle,  OK, Error };
-status Status;
+status Status = Startup;
 struct Position
 {
     double X;
@@ -105,6 +108,7 @@ void move_scanner_to(double x, double y, double z)
 {
   geometry_msgs::Twist position;
   double linearX, linearY, linearZ;
+  std_msgs::String msg;
   string gcode;
 
   linearX = x - home_off_x - start_x; // scanner head offset - start_x 
@@ -123,24 +127,19 @@ void move_scanner_to(double x, double y, double z)
   ROS_INFO("Position: x: %.3f", linearX);
   ROS_INFO("Old Target_x: x: %.3f", target_x);
 */
-/*
-  if ((position.linear.x <= 0.0) || (position.linear.x >= (target_x - 0.25))) // reached target, work for next target
+
+  if (Status == Idle) // Grbl ready to accept command
   {
     if (target_x <= 0) target_x = x_step; else target_x = position.linear.x + x_step;
     ROS_INFO("New Target_x: x: %.3f", target_x);
     position.linear.x = target_x;
-    pos_pub.publish(position);
-    ROS_INFO("Target x: %.3f, y: %.3f, z: %.3f", position.linear.x, position.linear.y, position.linear.z );
-    ROS_INFO("Command published. ******************************");
-  }
-*/
-  // Replace the above with something else.
-  // No need to check for anything yet.
-  gcode = "G0 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
-
+    gcode = "G0 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
+    msg.data = gcode;
   cout << gcode;
-
+//    grbl_pub.publish(msg);
   cout << "G-Code sent." << endl;
+  }
+
 }
 
 void publish_deepest_pt(pcl::PointXYZ deepest_point)
@@ -203,14 +202,17 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
   y = pointcloud[dpst].y * 1e3;
   z = pointcloud[dpst].z * 1e3;
 
-  ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
+  if ((z != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (z != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
+        && (z != std::numeric_limits<double>::infinity()))
+  {   // then this is a piece of normal point
+    ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
 
-//  move_scanner_to(x, y, z);
-  // There should be another one to move the torch to.
-  // The difference is the position in the z direction.
+    move_scanner_to(x, y, z);
+    // There should be another one to move the torch to.
+    // The difference is the position in the z direction.
 
-  // publish_deepest_pt(pointcloud[dpst]);
-
+    publish_deepest_pt(pointcloud[dpst]);
+  }
 }
 
 /*
@@ -225,6 +227,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
   // Only ros cloud can be transformed!
   tf::TransformListener listener;
   tf::StampedTransform  stransform;
+
   try
   {
     listener.waitForTransform(world_frame,
@@ -252,8 +255,8 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
   pcl::fromROSMsg(transformed_ros_cloud, pcl_cloud);
   pcl_Y_cloud.header.frame_id = pcl_cloud.header.frame_id; // cannot be done away with; must keep
   pcl_Y_cloud += pcl_cloud; // concatenate the front line to the cumulated point cloud
-  // deepest_pt(pcl_cloud); // try to find the deepest point of this cross section
-  // pub.publish(pcl_Y_cloud);
+  deepest_pt(pcl_cloud); // try to find the deepest point of this cross section
+  pub.publish(pcl_Y_cloud);
 }
 
 int getrosparams(ros::NodeHandle pnh)
@@ -281,6 +284,12 @@ int getrosparams(ros::NodeHandle pnh)
   return(1);
 }
 
+void statCb(std_msgs::String msg)
+{
+  if (msg.data == "Idle") Status = Idle;
+  if (msg.data == "Run") Status = Running;
+}
+
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "cncweld_core_node");
@@ -299,15 +308,17 @@ int main(int argc, char* argv[])
   // deepest point marker publisher
   mkr_pub = nh.advertise<visualization_msgs::Marker>("deepest_point", 0);
 
+  grbl_pub = nh.advertise<std_msgs::String>("grbl_cmd", 1);
+
   std::string topic = nh.resolveName(cloud_topic);
 
   //jumpTo(0, 0, -35);
   // Only scribe to the scanner point cloud after homing
   // otherwise, no tf between world and lj_v7200_optical_frame
   // while (Status != Idle) inqGrbl();
-  // ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
-
-  Status = Startup;
+  ros::Subscriber status_sub = nh.subscribe<std_msgs::String>("grbl_status", 1, statCb);
+  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
+  ros::spin();
 
   // Try to move to somewhere
 //  move_scanner_to(520, -50, -20);
