@@ -62,7 +62,7 @@ def main():
 		status     = cnc_obj.getStatus()
 		# print("Gotten status")
 		cnc_pose   = cnc_obj.getTwist()
-		print("Gotten position")
+		# print("Gotten position")
 		ros_status = String(status)
 		# After the data is formatted and ready,
 		# then publish them.

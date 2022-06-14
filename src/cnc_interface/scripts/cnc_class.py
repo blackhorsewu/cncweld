@@ -269,7 +269,7 @@ class cnc:
 					if len(matches[0]) == 3:
 #						self.pos = list(matches[1])
 						self.pos = list(matches[0])
-						print(status)
+						# print(status)
 					return status
 				except IndexError:
 					# print("No matches found in serial")

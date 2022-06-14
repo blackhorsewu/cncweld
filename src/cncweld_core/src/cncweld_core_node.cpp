@@ -101,14 +101,16 @@ double home_off_z = 93.0;
 
 double target_x = 0.0; // mm
 
-double start_x = -0.85; // mm
-double x_step = 30.0; // mm
+double start_x = 87.56; // mm; when z moved -40mm from origin
+double x_step = 5.0; // mm
 
 /*
  * Global Variables for Status and Position
  */
 enum status { Startup, Alarm, Running, Idle,  OK, Error };
 status Status = Startup;
+enum hoststatus { G_CodeSent, waitingIdle };
+hoststatus hostStatus = waitingIdle;
 struct Position
 {
     double X;
@@ -119,6 +121,10 @@ struct Position
     double B;
     double C;
 };
+
+bool readyToShow = false;
+bool scanStarted = false;
+
 /*
 void jumpTo(double x, double y, double z) // Jump to uses G00
 {
@@ -144,6 +150,8 @@ void move_scanner_to(double x, double y, double z)
   double linearX, linearY, linearZ;
   std_msgs::String msg;
   string gcode;
+  string grbl_status = "do not know what! ";
+  string host_status = "do not know what! ";
 
   linearX = x - home_off_x - start_x; // scanner head offset - start_x 
 
@@ -162,15 +170,25 @@ void move_scanner_to(double x, double y, double z)
   ROS_INFO("Old Target_x: x: %.3f", target_x);
 */
 
-  if (Status == Idle) // Grbl ready to accept command
+  if (Status == Idle) grbl_status = "Idle";
+  if (Status == Running) grbl_status = "Running";
+  if (hostStatus == waitingIdle) host_status = "Waiting Idle";
+  if (hostStatus == G_CodeSent) host_status = "G-Code sent";
+
+  cout << "Grbl status: " << grbl_status << endl;
+  cout << "Host status: " << host_status << endl;
+
+  if ((hostStatus == waitingIdle) && (Status == Idle)) // Grbl ready to accept command
   {
-    if (target_x <= 0) target_x = x_step; else target_x = position.linear.x + x_step;
+    readyToShow = true;
+    if (target_x <= 0) target_x = x_step; else target_x = linearX + x_step;
     ROS_INFO("New Target_x: x: %.3f", target_x);
-    position.linear.x = target_x;
-    gcode = "G0 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
+    linearX = target_x;
+    gcode = "G01 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
     msg.data = gcode;
   cout << gcode;
-//    grbl_pub.publish(msg);
+    grbl_pub.publish(msg);
+    hostStatus = G_CodeSent;
   cout << "G-Code sent." << endl;
   }
 
@@ -198,8 +216,11 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
   dpst_pt.pose.position.y = deepest_point.y;
   dpst_pt.pose.position.z = deepest_point.z;
 
-  // publish the point as a marker in RViz
-  mkr_pub.publish(dpst_pt);
+  if (readyToShow)
+  {
+    // publish the point as a marker in RViz
+    mkr_pub.publish(dpst_pt);
+  }
 }
 
 /*
@@ -236,9 +257,13 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
   y = pointcloud[dpst].y * 1e3;
   z = pointcloud[dpst].z * 1e3;
 
-  if ((z != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (z != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
-        && (z != std::numeric_limits<double>::infinity()))
-  {   // then this is a piece of normal point
+  if (((z != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (z != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
+        && (z != std::numeric_limits<double>::infinity())) &&
+     ((y != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (y != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
+        && (z != std::numeric_limits<double>::infinity())) &&
+     ((x != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (x != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
+        && (z != std::numeric_limits<double>::infinity())))   
+  {   // then this is a normal point
     ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
 
     move_scanner_to(x, y, z);
@@ -262,6 +287,14 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
   tf::TransformListener listener;
   tf::StampedTransform  stransform;
 
+  if (!scanStarted)
+  {
+    char c;
+    cout << "Hit enter when ready to start scanning." << endl;
+    c = getchar();
+    scanStarted = true;
+  }
+  else
   try
   {
     listener.waitForTransform(world_frame,
@@ -288,9 +321,12 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
    */
   pcl::fromROSMsg(transformed_ros_cloud, pcl_cloud);
   pcl_Y_cloud.header.frame_id = pcl_cloud.header.frame_id; // cannot be done away with; must keep
-  pcl_Y_cloud += pcl_cloud; // concatenate the front line to the cumulated point cloud
   deepest_pt(pcl_cloud); // try to find the deepest point of this cross section
-  pub.publish(pcl_Y_cloud);
+  if (readyToShow)
+  {
+    pcl_Y_cloud += pcl_cloud; // concatenate the front line to the cumulated point cloud
+    pub.publish(pcl_Y_cloud);
+  }
 }
 
 int getrosparams(ros::NodeHandle pnh)
@@ -320,8 +356,27 @@ int getrosparams(ros::NodeHandle pnh)
 
 void statCb(std_msgs::String msg)
 {
+  // cout << msg.data << endl;
+  if ((msg.data == "Home")||(msg.data == "OK"))
+  {
+    // In the beginning, Status was Startup. When it turns to OK meaning Homing is done.
+    if (Status == Startup)
+    {
+      std_msgs::String msg;
+      char c;
+      cout << "Hit enter when ready to switch on laser." << endl;
+      c = getchar();
+      msg.data = "M8\n";
+      grbl_pub.publish(msg);
+    }
+    Status = OK;
+  } 
   if (msg.data == "Idle") Status = Idle;
-  if (msg.data == "Run") Status = Running;
+  if (msg.data == "Run")
+  {
+    Status = Running;
+    if (hostStatus == G_CodeSent) hostStatus = waitingIdle;
+  }
 }
 
 int main(int argc, char* argv[])
@@ -346,11 +401,12 @@ int main(int argc, char* argv[])
 
   std::string topic = nh.resolveName(cloud_topic);
 
-  //jumpTo(0, 0, -35);
+  // Need to start subscribing to grbl status first otherwise will not know its status
+  // to proceed.
+  ros::Subscriber status_sub = nh.subscribe<std_msgs::String>("grbl_status", 1, statCb);
+
   // Only scribe to the scanner point cloud after homing
   // otherwise, no tf between world and lj_v7200_optical_frame
-  // while (Status != Idle) inqGrbl();
-  ros::Subscriber status_sub = nh.subscribe<std_msgs::String>("grbl_status", 1, statCb);
   ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
   ros::spin();
 

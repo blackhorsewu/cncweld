@@ -58,7 +58,6 @@ class JointStatePublisher():
                 joint = {'min':minval, 'max':maxval, 'zero':zeroval, 'value':zeroval }
                 self.free_joints[name] = joint
                 self.joint_list.append(name)
-                print(name) # this will show all the names of movable joints from the URDF
 
         # This node originally was designed to cater for a list of joint position
         # sources. It will then subscribe to every member of the list of sources.

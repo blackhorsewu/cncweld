@@ -45,7 +45,7 @@ geometry_msgs::Twist position;
 /*
  * Global Variables for Status and Position
  */
-enum status { Startup, Alarm, Running, Idle,  OK, Error };
+enum status { Startup, Alarm, Running, Idle,  OK, Error, Home };
 enum grblCmd { Homing, Wakeup, ViewSettings };
 
 status Status;
@@ -83,56 +83,89 @@ void initJointStates()
   jointState.position.push_back(0.0);
 }
 
+string in_line="";
+
 void received(const char *data, unsigned int len)
 {
   std_msgs::String msg;
+  bool completed = false;
 
-  responded = true;
   vector<char> v(data,data+len);
-  string in_line(v.begin(), v.end());
-
-  smatch sm;
-  if (regex_search(in_line, sm, str_expr ))
+  for(unsigned int i=0;i<v.size();i++)
   {
-    //cout << sm[0] << endl;
-    if (sm[0] != "ok"){ // it should then be either Idle or Run
-      if (sm[1] == "Idle")
-      {
-        Status = Idle;
-        msg.data = "Idle";
-        status_pub.publish(msg);
-      }
-      if (sm[1] == "Run")
-      {
-        Status = Running;
-        msg.data = "Run";
-        status_pub.publish(msg);
-      }
+    if(v[i]=='\n')
+    {
+      in_line += "\n"; // the received line is completed
+      completed = true; break;
+    } else 
+    {
+      if(v[i]<32 || v[i]>=0x7f) cout.put(' ');//Remove non-ascii char
+      else in_line += v[i];
+    }
+  }
 
-      // if it has no position data do not publish it
-//      if ((startJspPub) && (sizeof(sm)==5))
-//cout << sizeof(sm)/sizeof(sm[0]) << endl;
-      if ((startJspPub))
-/*
-      {
-        jointState.header.stamp = ros::Time::now();
-//        jointState.header.stamp = ros::Time(0);
-        jointState.position[0] = stod(sm[3]) / 1e3;
-        jointState.position[1] = stod(sm[4]) / 1e3;
-        jointState.position[2] = (stod(sm[2]) + 90) / 1e3;
-        jointState.position[3] = 0.0;
+  if (completed)
+  {
+    responded = true;
 
-        jsp_pub.publish(jointState);
-      }
-*/
-      {
-        position.linear.x = stod(sm[2]);
-        position.linear.y = stod(sm[3]);
-        position.linear.z = stod(sm[4]);
-        position.angular.x = 0.0;
-        pos_pub.publish(position);
+cout << in_line << endl;
+    smatch sm;
+    if (regex_search(in_line, sm, str_expr ))
+    {
+      // cout << sm[0] << endl;
+      if (sm[0] == "ok")
+        {
+          Status = OK;
+          msg.data = "OK";
+          status_pub.publish(msg);
+        }
+      else 
+      { // it should then be either Idle or Run
+        if (sm[1] == "Idle")
+        {
+          Status = Idle;
+          msg.data = "Idle";
+          status_pub.publish(msg);
+        }
+        if (sm[1] == "Run")
+        {
+          Status = Running;
+          msg.data = "Run";
+          status_pub.publish(msg);
+        }
+        if (sm[1] == "Home")
+        {
+          Status = Home;
+          msg.data = "Home";
+          status_pub.publish(msg);
+        }
+
+        // if it has no position data do not publish it
+  //      if ((startJspPub) && (sizeof(sm)==5))
+  //cout << sizeof(sm)/sizeof(sm[0]) << endl;
+        if ((startJspPub))
+  /*
+        {
+          jointState.header.stamp = ros::Time::now();
+  //        jointState.header.stamp = ros::Time(0);
+          jointState.position[0] = stod(sm[3]) / 1e3;
+          jointState.position[1] = stod(sm[4]) / 1e3;
+          jointState.position[2] = (stod(sm[2]) + 90) / 1e3;
+          jointState.position[3] = 0.0;
+
+          jsp_pub.publish(jointState);
+        }
+  */
+        {
+          position.linear.x = stod(sm[2]);
+          position.linear.y = stod(sm[3]);
+          position.linear.z = stod(sm[4]);
+          position.angular.x = 0.0;
+          pos_pub.publish(position);
+        }
       }
     }
+    in_line = "";
   }
 }
 
@@ -140,6 +173,7 @@ CallbackAsyncSerial serial("/dev/ttyACM0", 115200);
 
 void cmdGrbl(grblCmd cmd)
 {
+  responded = false;
   switch (cmd) {
     case Wakeup:
       cout << "Waking GRBL up ..." << endl;
@@ -163,6 +197,7 @@ void cmdGrbl(grblCmd cmd)
 
 void cmdCb(const std_msgs::String::ConstPtr& msg)
 {
+  responded = false;
   // The msg is a string of G-Code and can be sent to Grbl directly
   serial.writeString(msg->data);
   // Wait for Grbl Response
