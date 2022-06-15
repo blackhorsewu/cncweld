@@ -11,7 +11,8 @@
  * 
  */
 
-#include "AsyncSerial.h"
+// #include "AsyncSerial.h"
+#include <SerialStream.h>
 
 #include <iostream>
 #include <termios.h>
@@ -25,6 +26,11 @@
 #include <sstream>
 
 using namespace std;
+using namespace LibSerial;
+
+// ROS parameters for GRBL
+string devname;
+int baudrate;
 
 /* The Joint State Publisher here is not used (at least for the time being)
 ros::Publisher jsp_pub; // Joint State Publisher
@@ -46,9 +52,9 @@ geometry_msgs::Twist position;
  * Global Variables for Status and Position
  */
 enum status { Startup, Alarm, Running, Idle,  OK, Error, Home };
-enum grblCmd { Homing, Wakeup, ViewSettings };
+enum grblCmd { Homing, Wakeup, ViewSettings, Inquire, OffLaser };
 
-status Status;
+status Status = Startup;
 /*
 struct Position
 {
@@ -68,6 +74,56 @@ bool startJspPub = false;
 
 regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
 
+SerialStream serial;
+
+void initSerial()
+{
+  serial.Open( "/dev/ttyACM0" );
+  if ( !serial.good() )
+  {
+    std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] "
+              << "Error: Could not open serial port."
+              << std::endl ;
+    exit(1) ;
+  }
+
+  serial.SetBaudRate(SerialStreamBuf::BAUD_115200) ;
+  if ( !serial.good() )
+  {
+    std::cerr << "Error: Could not set the baud rate." << std::endl ;
+    exit(1) ;
+  }
+
+  cout << "Serial port to GRBL setup completed." << endl;
+
+}
+/*
+void waitGrblResponse()
+{
+  string inString;
+
+  while( serial.rdbuf()->in_avail() == 0 ) // Wait for character
+  {
+      usleep(100000) ; // 100 milli second or 0.1 second
+  }
+
+  inString = "";
+  while( serial.rdbuf()->in_avail() > 0  )
+  {
+    char next_byte;
+    serial.get(next_byte);
+    inString += next_byte;
+    if ( next_byte == '\n' )
+      {
+        if (inString != "ok\n")
+        cout << inString;
+        inString = "";
+      }
+  }
+
+}
+*/
+/*
 void initJointStates()
 {
   jointState.name.push_back("X_link_Y_link_joint");
@@ -84,7 +140,8 @@ void initJointStates()
 }
 
 string in_line="";
-
+*/
+/*
 void received(const char *data, unsigned int len)
 {
   std_msgs::String msg;
@@ -144,7 +201,7 @@ cout << in_line << endl;
   //      if ((startJspPub) && (sizeof(sm)==5))
   //cout << sizeof(sm)/sizeof(sm[0]) << endl;
         if ((startJspPub))
-  /*
+  -----
         {
           jointState.header.stamp = ros::Time::now();
   //        jointState.header.stamp = ros::Time(0);
@@ -155,7 +212,7 @@ cout << in_line << endl;
 
           jsp_pub.publish(jointState);
         }
-  */
+  -----
         {
           position.linear.x = stod(sm[2]);
           position.linear.y = stod(sm[3]);
@@ -168,40 +225,125 @@ cout << in_line << endl;
     in_line = "";
   }
 }
+*/
+// CallbackAsyncSerial serial("/dev/ttyACM0", 115200);
 
-CallbackAsyncSerial serial("/dev/ttyACM0", 115200);
+void waitGrblResponse()
+{
+  string inString = "";
+  std_msgs::String msg;
+  status Prev_Status = Status;
+  smatch sm;
+  bool completed = false;
+  
+  while( serial.rdbuf()->in_avail() == 0 ) // Wait for response
+  {
+      usleep(10000) ; // wait for 10 milli second or 0.01 second
+  }
+
+  while (!completed)
+  {
+    while( serial.rdbuf()->in_avail() > 0  ) // Read the response
+    {
+      char next_byte;
+      serial.get(next_byte);
+      inString += next_byte;
+      if ( next_byte == '\n' ) {completed = true; break;}
+    }
+    if (completed) break; else usleep(10000); // wait for 10 milli second
+  }
+
+  // cout << "I am here (1): " << inString << endl;
+
+  if (inString[0] == 'o') // it is most likely ok
+  {
+    if (inString == "ok\n")
+    {
+      Status = OK;
+      msg.data = "OK";
+      status_pub.publish(msg);
+    }
+  } else
+  if (inString[0] == '$') cout << inString; // do not need an endl here
+  else
+  if (regex_search(inString, sm, str_expr ))
+  {
+    { // it can be Home, Idle, or Run
+      // cout << "I am here (2) " << endl;
+      if (sm[1] == "Idle")
+      {
+        Status = Idle;
+        msg.data = "Idle";
+      }
+      if (sm[1] == "Run")
+      {
+        Status = Running;
+        msg.data = "Run";
+      }
+      if (sm[1] == "Home")
+      {
+        Status = Home;
+        msg.data = "Home";
+      }
+      if (Prev_Status != Status)
+      {
+        cout << "Status changed: " << inString; // do not need an endl here, inString has it.
+        status_pub.publish(msg); // only publish when changed
+      }
+      //cout << "I am here (3); " << sm[1] << endl;
+      position.linear.x = stod(sm[2]);
+      position.linear.y = stod(sm[3]);
+      position.linear.z = stod(sm[4]);
+      position.angular.x = 0.0;
+      pos_pub.publish(position);
+    }
+  }
+  else cout << "Sorry, no match found!" << endl << inString << endl;
+
+}
 
 void cmdGrbl(grblCmd cmd)
 {
-  responded = false;
+  // responded = false;
   switch (cmd) {
     case Wakeup:
       cout << "Waking GRBL up ..." << endl;
-      serial.writeString("\n");
+      serial<< endl;
       break;
     case Homing:
       cout << "GRBL Homing ..." << endl;
-      serial.writeString("$H\n");
+      serial<< "$H" << endl;
       break;
     case ViewSettings:
       cout << "GRBL Settings ..." << endl;
-      serial.writeString("$$\n");
+      serial << "$$\n" << endl;
+      break;
+    case Inquire:
+      // do not output to screen messages otherwise it will fill the screen.
+      serial << "?" << endl;
+      break;
+    case OffLaser:
+      serial << "M9\n" << endl;
       break;
     default:
       break;
   }
-  // Wait for Grbl Response to the command just sent
-  while (responded == false) usleep(10000); // wait for 0.001 second
+  // Wait for Grbl Response to the command just sent,
+  // if it is an inquiry, it will handle it.
+  waitGrblResponse();
+  //while (responded == false) usleep(10000); // wait for 0.001 second
 
 }
 
 void cmdCb(const std_msgs::String::ConstPtr& msg)
 {
-  responded = false;
+  cout << "Driver received command: " << msg->data << endl;
+  // responded = false;
   // The msg is a string of G-Code and can be sent to Grbl directly
-  serial.writeString(msg->data);
+  serial << msg->data << endl;
   // Wait for Grbl Response
-  while (responded == false) usleep(10000); // wait for steps of 0.001 second
+  waitGrblResponse();
+  // while (responded == false) usleep(10000); // wait for steps of 0.001 second
 }
 
 int main(int argc, char* argv[])
@@ -223,24 +365,38 @@ int main(int argc, char* argv[])
   // status publisher
   status_pub = nh.advertise<std_msgs::String>("grbl_status", 1);
 
-  serial.setCallback(received);
+  // Clear the screen first
+  std::system("clear");
+
+  // serial.setCallback(received);
+  initSerial();
 
   cmdGrbl(Wakeup);
   cmdGrbl(ViewSettings);
   cmdGrbl(Homing);
+  cmdGrbl(OffLaser); // Make sure the laser is off.
 
-  initJointStates(); // Initialise the joint States before publishing
+  // Do not publish joint state here now!
+  // initJointStates(); // Initialise the joint States before publishing
   startJspPub = true;
+
+  Status = Startup;
 
   cmd_sub = nh.subscribe(cmd_topic, 1, cmdCb);
   // inqGrbl();
-  ros::Rate loop_rate(20); // get GRBL status 10 times a second
+  ros::Rate loop_rate(100); // get GRBL status 10 times a second
   while (ros::ok)
   {
-    responded = false;
-    serial.writeString("?\n"); // send an inquiry request to GRBL
-    while (responded == false) usleep(10000); // wait for 0.001 second
-    ros::spinOnce();
+    // responded = false;
+    // serial << "?\n"; // send an inquiry request to GRBL
+    cmdGrbl(Inquire); // No need to wait for response, inqGrbl handles all.
+    // waitGrblResponse(); 
+    // while (responded == false) usleep(10000); // wait for 0.001 second
+    ros::spinOnce(); //this is only valid for subscribed topics
     loop_rate.sleep();
   }
+
+  cmdGrbl(OffLaser); // Make sure the laser is off.
+
+  serial.Close();
 }

@@ -107,8 +107,8 @@ double x_step = 5.0; // mm
 /*
  * Global Variables for Status and Position
  */
-enum status { Startup, Alarm, Running, Idle,  OK, Error };
-status Status = Startup;
+enum status { Startup, Alarm, Running, Idle,  OK, Error, Home };
+status grblStatus = Startup;
 enum hoststatus { G_CodeSent, waitingIdle };
 hoststatus hostStatus = waitingIdle;
 struct Position
@@ -170,16 +170,17 @@ void move_scanner_to(double x, double y, double z)
   ROS_INFO("Old Target_x: x: %.3f", target_x);
 */
 
-  if (Status == Idle) grbl_status = "Idle";
-  if (Status == Running) grbl_status = "Running";
+  if (grblStatus == Idle) grbl_status = "Idle";
+  if (grblStatus == Running) grbl_status = "Running";
+  if (grblStatus == Home) grbl_status = "Home";
   if (hostStatus == waitingIdle) host_status = "Waiting Idle";
   if (hostStatus == G_CodeSent) host_status = "G-Code sent";
 
   cout << "Grbl status: " << grbl_status << endl;
   cout << "Host status: " << host_status << endl;
 
-  if ((hostStatus == waitingIdle) && (Status == Idle)) // Grbl ready to accept command
-  {
+  if ((hostStatus == waitingIdle) && (grblStatus == Idle)) 
+  { // Grbl ready to accept command
     readyToShow = true;
     if (target_x <= 0) target_x = x_step; else target_x = linearX + x_step;
     ROS_INFO("New Target_x: x: %.3f", target_x);
@@ -356,25 +357,28 @@ int getrosparams(ros::NodeHandle pnh)
 
 void statCb(std_msgs::String msg)
 {
-  // cout << msg.data << endl;
-  if ((msg.data == "Home")||(msg.data == "OK"))
+  cout << "Grbl status received: " << msg.data << endl;
+  if (msg.data == "Home")
   {
+    cout << "I am here (1)." << endl;
     // In the beginning, Status was Startup. When it turns to OK meaning Homing is done.
-    if (Status == Startup)
+    if (grblStatus == Startup) // grblStatus was Startup and now Homed ready to switch on laser
     {
-      std_msgs::String msg;
+      std_msgs::String out_msg;
       char c;
       cout << "Hit enter when ready to switch on laser." << endl;
       c = getchar();
-      msg.data = "M8\n";
-      grbl_pub.publish(msg);
+      out_msg.data = "M8\n";
+      grbl_pub.publish(out_msg);
+      cout << "grbl_pub published: " << out_msg.data << endl;
     }
-    Status = OK;
+    grblStatus = Home;
   } 
-  if (msg.data == "Idle") Status = Idle;
+  cout << "I am here (2)." << endl;
+  if (msg.data == "Idle") grblStatus = Idle;
   if (msg.data == "Run")
   {
-    Status = Running;
+    grblStatus = Running;
     if (hostStatus == G_CodeSent) hostStatus = waitingIdle;
   }
 }

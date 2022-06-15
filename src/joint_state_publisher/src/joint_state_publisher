@@ -78,7 +78,7 @@ class JointStatePublisher():
         rospy.Subscriber('grbl_pos', Twist, self.source_cb)
 
         # Declare a publisher for the topic /joint_states, of type JointState.
-        self.pub = rospy.Publisher('joint_states', JointState)
+        self.pub = rospy.Publisher('joint_states', JointState, queue_size=1)
 
     # Because it is not a General Purpose node as the original to cater for every 
     # possible urdf. We only need to work with our own CNC Device which only has 4 dof.
@@ -95,7 +95,7 @@ class JointStatePublisher():
         # Note: The /cnc_interface/position Twist message uses unit mm
         # while ROS uses unit m, therefore it is necessary to divide by 1,000.
         joint = self.free_joints['base_link_X_link_joint']
-        joint['value'] = (msg.linear.x+90)/1000.0
+        joint['value'] = (msg.linear.x)/1000.0
         joint = self.free_joints['X_link_Y_link_joint']
         joint['value'] = msg.linear.y/1000.0
         joint = self.free_joints['Y_link_Z_link_joint']
@@ -133,7 +133,7 @@ class JointStatePublisher():
 
 if __name__ == '__main__':
     try:
-        print( "my version of jsp." )
+        # print( "my version of jsp." )
         rospy.init_node('joint_state_publisher')
         jsp = JointStatePublisher()
         jsp.loop()

@@ -61,6 +61,7 @@ catkin_package(
   LIBRARIES
     grbl_driver
   CATKIN_DEPENDS
+    libserial
     roscpp
 )
 
@@ -93,10 +94,10 @@ include_directories(
 #   ${PROJECT_NAME}_node 
 #   src/grbl_driver_node.cpp)
 
-add_library(
-  AsyncSerial
-  src/AsyncSerial.cpp
-)
+# add_library(
+#   AsyncSerial
+#   src/AsyncSerial.cpp
+# )
 
 add_executable(
   ${PROJECT_NAME}_node 
@@ -110,7 +111,7 @@ add_dependencies(
 
 target_link_libraries(
   ${PROJECT_NAME}_node
-  AsyncSerial
+  serial
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
