@@ -403,7 +403,7 @@ int main(int argc, char* argv[])
 
   // Need to start subscribing to grbl status first otherwise will not know its status
   // to proceed.
-  ros::Subscriber status_sub = nh.subscribe<std_msgs::String>("grbl_status", 1, statCb);
+  ros::Subscriber status_sub = nh.subscribe<std_msgs::String>("grbl_status", 10, statCb);
 
   // Only scribe to the scanner point cloud after homing
   // otherwise, no tf between world and lj_v7200_optical_frame

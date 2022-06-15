@@ -34,7 +34,7 @@ ros::Publisher pos_pub; // Position Publisher
 
 ros::Publisher status_pub; // Publish the Grbl status
 
-ros::Subscriber cmd_sub; // Grbl command Subscriber
+// ros::Subscriber cmd_sub; // Grbl command Subscriber
 
 // Create an object of type "jointState"
 sensor_msgs::JointState jointState;
@@ -84,33 +84,22 @@ void initJointStates()
 }
 
 string in_line="";
+string buffer1="";
+bool completed = false;
+bool completed1 = false;
+bool touched = false;
 
-void received(const char *data, unsigned int len)
+void process(string inString)
 {
   std_msgs::String msg;
-  bool completed = false;
-
-  vector<char> v(data,data+len);
-  for(unsigned int i=0;i<v.size();i++)
-  {
-    if(v[i]=='\n')
-    {
-      in_line += "\n"; // the received line is completed
-      completed = true; break;
-    } else 
-    {
-      if(v[i]<32 || v[i]>=0x7f) cout.put(' ');//Remove non-ascii char
-      else in_line += v[i];
-    }
-  }
 
   if (completed)
   {
     responded = true;
 
-cout << in_line << endl;
+//cout << inString << endl;
     smatch sm;
-    if (regex_search(in_line, sm, str_expr ))
+    if (regex_search(inString, sm, str_expr ))
     {
       // cout << sm[0] << endl;
       if (sm[0] == "ok")
@@ -165,7 +154,55 @@ cout << in_line << endl;
         }
       }
     }
+    // in_line = "";
+  }
+}
+
+void received(const char *data, unsigned int len)
+{
+  vector<char> v(data,data+len);
+  if (touched)
+  {
+    in_line = buffer1;
+    buffer1 = "";
+    touched = false;
+  }
+
+  for(unsigned int i=0;i<v.size();i++)
+  {
+    if (!completed)
+    {
+      if(v[i]=='\n')
+      {
+        in_line += "\n"; // the received line is completed
+        completed = true;
+      } else 
+      {
+        if (v[i] >= 32 && v[i] < 0x7f) in_line += v[i];
+        // if(v[i]<32 || v[i]>=0x7f) cout.put('X');//Remove non-ascii char
+        else in_line += v[i];
+      }
+    }
+    else
+    {
+      touched = true;
+      if(v[i]=='\n')
+      {
+        buffer1 += "\n"; // the received line is completed
+        completed1 = true;
+      } else 
+      {
+        if (v[i] >= 32 && v[i] < 0x7f) buffer1 += v[i];
+        // if(v[i]<32 || v[i]>=0x7f) cout.put('Y');//Remove non-ascii char
+        else buffer1 += v[i];
+      }
+    }
+  }
+  if (completed)
+  {
+    process(in_line);
     in_line = "";
+    completed = false;
   }
 }
 
@@ -191,17 +228,21 @@ void cmdGrbl(grblCmd cmd)
       break;
   }
   // Wait for Grbl Response to the command just sent
-  while (responded == false) usleep(10000); // wait for 0.001 second
+  while (responded == false) usleep(10000); // wait for 10 milli second
 
 }
 
 void cmdCb(const std_msgs::String::ConstPtr& msg)
 {
-  responded = false;
+  cout << "Driver received cmd: " << msg->data << endl;
+  // responded = false;
   // The msg is a string of G-Code and can be sent to Grbl directly
-  serial.writeString(msg->data);
+  // serial.writeString(msg->data);
+  serial.writeString("M9\n");
+  cout << "Just sent the msg to Grbl: " << msg->data << endl;
   // Wait for Grbl Response
-  while (responded == false) usleep(10000); // wait for steps of 0.001 second
+  // while (responded == false) usleep(10000); // wait for steps of 0.001 second
+  // cout << "response received from Grbl." << endl;
 }
 
 int main(int argc, char* argv[])
@@ -232,9 +273,9 @@ int main(int argc, char* argv[])
   initJointStates(); // Initialise the joint States before publishing
   startJspPub = true;
 
-  cmd_sub = nh.subscribe(cmd_topic, 1, cmdCb);
+  ros::Subscriber cmd_sub = nh.subscribe<std_msgs::String>("grbl_cmd", 10, cmdCb);
   // inqGrbl();
-  ros::Rate loop_rate(20); // get GRBL status 10 times a second
+  ros::Rate loop_rate(5); // get GRBL status 10 times a second
   while (ros::ok)
   {
     responded = false;

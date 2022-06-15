@@ -34,7 +34,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Front line
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:

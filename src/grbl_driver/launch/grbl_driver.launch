@@ -7,9 +7,9 @@
   <param name="robot_description" command="xacro $(find cncweld_description)/urdf/cncweld.xacro" />
 
   <!-- Use the joint state publisher specially written for cncweld
-     This will change to be built-in in cncweld_core     
+     This will change to be built-in in cncweld_core     -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"
-    output="screen" /> -->
+    output="screen" /> 
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
