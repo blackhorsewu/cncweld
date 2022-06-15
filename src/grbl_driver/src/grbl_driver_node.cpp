@@ -12,7 +12,7 @@
  */
 
 #include "AsyncSerial.h"
-//#include <SerialStream.h>
+// #include <SerialStream.h>
 
 #include <iostream>
 #include <termios.h>
@@ -26,7 +26,7 @@
 #include <sstream>
 
 using namespace std;
-using namespace LibSerial;
+// using namespace LibSerial;
 
 // ROS parameters for GRBL
 string devname;
@@ -40,7 +40,7 @@ ros::Publisher pos_pub; // Position Publisher
 
 ros::Publisher status_pub; // Publish the Grbl status
 
-// ros::Subscriber cmd_sub; // Grbl command Subscriber
+ros::Subscriber cmd_sub; // Grbl command Subscriber
 
 // Create an object of type "jointState"
 sensor_msgs::JointState jointState;
@@ -74,6 +74,7 @@ bool startJspPub = false;
 
 regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
 
+/*
 SerialStream serial;
 
 void initSerial()
@@ -97,7 +98,8 @@ void initSerial()
   cout << "Serial port to GRBL setup completed." << endl;
 
 }
-/*
+
+
 void waitGrblResponse()
 {
   string inString;
@@ -138,6 +140,9 @@ void initJointStates()
   jointState.position.push_back(0.09);
   jointState.position.push_back(0.0);
 }
+*/
+
+/* This work for Async Serial */
 
 string in_line="";
 string buffer1="";
@@ -189,7 +194,7 @@ void process(string inString)
   //      if ((startJspPub) && (sizeof(sm)==5))
   //cout << sizeof(sm)/sizeof(sm[0]) << endl;
         if ((startJspPub))
-  -----
+  /*
         {
           jointState.header.stamp = ros::Time::now();
   //        jointState.header.stamp = ros::Time(0);
@@ -200,7 +205,7 @@ void process(string inString)
 
           jsp_pub.publish(jointState);
         }
-  -----
+  */
         {
           position.linear.x = stod(sm[2]);
           position.linear.y = stod(sm[3]);
@@ -261,9 +266,10 @@ void received(const char *data, unsigned int len)
     completed = false;
   }
 }
-*/
-// CallbackAsyncSerial serial("/dev/ttyACM0", 115200);
 
+CallbackAsyncSerial serial("/dev/ttyACM0", 115200);
+
+/*
 void waitGrblResponse()
 {
   string inString = "";
@@ -337,6 +343,7 @@ void waitGrblResponse()
   else cout << "Sorry, no match found!" << endl << inString << endl;
 
 }
+*/
 
 void cmdGrbl(grblCmd cmd)
 {
@@ -344,22 +351,22 @@ void cmdGrbl(grblCmd cmd)
   switch (cmd) {
     case Wakeup:
       cout << "Waking GRBL up ..." << endl;
-      serial<< endl;
+      serial.writeString("\n");
       break;
     case Homing:
       cout << "GRBL Homing ..." << endl;
-      serial<< "$H" << endl;
+      serial.writeString("$H\n");
       break;
     case ViewSettings:
       cout << "GRBL Settings ..." << endl;
-      serial << "$$\n" << endl;
+      serial.writeString("$$\n");
       break;
     case Inquire:
       // do not output to screen messages otherwise it will fill the screen.
-      serial << "?" << endl;
+      serial.writeString("?\n");
       break;
     case OffLaser:
-      serial << "M9\n" << endl;
+      serial.writeString("M9\n");
       break;
     default:
       break;
@@ -374,11 +381,11 @@ void cmdCb(const std_msgs::String::ConstPtr& msg)
   cout << "Driver received cmd: " << msg->data << endl;
   // responded = false;
   // The msg is a string of G-Code and can be sent to Grbl directly
-  // serial.writeString(msg->data);
-  serial.writeString("M9\n");
+  serial.writeString(msg->data);
+  // serial<<msg->data<<endl;
   cout << "Just sent the msg to Grbl: " << msg->data << endl;
   // Wait for Grbl Response
-  // while (responded == false) usleep(10000); // wait for steps of 0.001 second
+  while (responded == false) usleep(10000); // wait for steps of 0.001 second
   // cout << "response received from Grbl." << endl;
 }
 
@@ -418,7 +425,7 @@ int main(int argc, char* argv[])
 
   ros::Subscriber cmd_sub = nh.subscribe<std_msgs::String>("grbl_cmd", 10, cmdCb);
   // inqGrbl();
-  ros::Rate loop_rate(5); // get GRBL status 10 times a second
+  ros::Rate loop_rate(100); // get GRBL status 10 times a second
   while (ros::ok)
   {
     // responded = false;
@@ -432,5 +439,5 @@ int main(int argc, char* argv[])
 
   cmdGrbl(OffLaser); // Make sure the laser is off.
 
-  serial.Close();
+  serial.close();
 }
