@@ -382,7 +382,7 @@ int main(int argc, char* argv[])
 
   Status = Startup;
 
-  cmd_sub = nh.subscribe(cmd_topic, 1, cmdCb);
+  cmd_sub = nh.subscribe<std_msgs::String>(cmd_topic, 1, cmdCb);
   // inqGrbl();
   ros::Rate loop_rate(100); // get GRBL status 10 times a second
   while (ros::ok)
