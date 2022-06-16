@@ -178,19 +178,15 @@ void move_scanner_to(double x, double y, double z)
     }
 
     linearZ = 50 - home_off_z; // because the z moves in reverse direction
-  /*
-    ROS_INFO("Position: x: %.3f", linearX);
-    ROS_INFO("Old Target_x: x: %.3f", target_x);
-  */
-
+  
     if (grblStatus == Idle) grbl_status = "Idle";
     if (grblStatus == Running) grbl_status = "Running";
     if (grblStatus == Home) grbl_status = "Home";
     if (hostStatus == waitingIdle) host_status = "Waiting Idle";
     if (hostStatus == G_CodeSent) host_status = "G-Code sent";
 
-    cout << "Grbl status: " << grbl_status << endl;
-    cout << "Host status: " << host_status << endl;
+    // cout << "Grbl status: " << grbl_status << endl;
+    // cout << "Host status: " << host_status << endl;
 
     if ((hostStatus == waitingIdle) && (grblStatus == Idle)) 
     { // Grbl ready to accept command
@@ -200,10 +196,10 @@ void move_scanner_to(double x, double y, double z)
       linearX = target_x;
       gcode = "G01 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
       msg.data = gcode;
-    cout << gcode;
+      // cout << gcode;
       grbl_pub.publish(msg);
       hostStatus = G_CodeSent;
-    cout << "G-Code sent." << endl;
+      // cout << "G-Code sent." << endl;
     }
   }
 }
@@ -365,7 +361,7 @@ void statCb(std_msgs::String msg)
   cout << "Grbl status received: " << msg.data << endl;
   if (msg.data == "Home")
   {
-    cout << "I am here (1)." << endl;
+    // cout << "I am here (1)." << endl;
     // In the beginning, Status was Startup. When it turns to OK meaning Homing is done.
     if (grblStatus == Startup) // grblStatus was Startup and now Homed ready to switch on laser
     {
@@ -383,7 +379,7 @@ void statCb(std_msgs::String msg)
     }
     grblStatus = Home;
   } 
-  cout << "I am here (2)." << endl;
+  // cout << "I am here (2)." << endl;
   if (msg.data == "Idle") grblStatus = Idle;
   if (msg.data == "Run")
   {
@@ -418,11 +414,9 @@ int main(int argc, char* argv[])
   // to proceed.
   ros::Subscriber status_sub = nh.subscribe<std_msgs::String>("grbl_status", 10, statCb);
 
-  // Only scribe to the scanner point cloud after homing
+  // Only subscribe to the scanner point cloud AFTER homing
   // otherwise, no tf between world and lj_v7200_optical_frame
+  // Actually, now the laser is off on startup and will only switch on by user
   ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
   ros::spin();
-
-  // Try to move to somewhere
-//  move_scanner_to(520, -50, -20);
 }

@@ -9,10 +9,12 @@
  * Working
  * 12 June, 2022. (Sunday)
  * 
+ * 16 June, 2022. (Thursday)
+ * Scanning is working
+ * Using AsyncSerial using Boost.asio
  */
 
 #include "AsyncSerial.h"
-// #include <SerialStream.h>
 
 #include <iostream>
 #include <termios.h>
@@ -26,7 +28,6 @@
 #include <sstream>
 
 using namespace std;
-// using namespace LibSerial;
 
 // ROS parameters for GRBL
 string devname;
@@ -189,82 +190,6 @@ void received(const char *data, unsigned int len)
 
 CallbackAsyncSerial serial("/dev/ttyACM0", 115200);
 
-/*
-void waitGrblResponse()
-{
-  string inString = "";
-  std_msgs::String msg;
-  status Prev_Status = Status;
-  smatch sm;
-  bool completed = false;
-  
-  while( serial.rdbuf()->in_avail() == 0 ) // Wait for response
-  {
-      usleep(10000) ; // wait for 10 milli second or 0.01 second
-  }
-
-  while (!completed)
-  {
-    while( serial.rdbuf()->in_avail() > 0  ) // Read the response
-    {
-      char next_byte;
-      serial.get(next_byte);
-      inString += next_byte;
-      if ( next_byte == '\n' ) {completed = true; break;}
-    }
-    if (completed) break; else usleep(10000); // wait for 10 milli second
-  }
-
-  // cout << "I am here (1): " << inString << endl;
-
-  if (inString[0] == 'o') // it is most likely ok
-  {
-    if (inString == "ok\n")
-    {
-      Status = OK;
-      msg.data = "OK";
-      status_pub.publish(msg);
-    }
-  } else
-  if (inString[0] == '$') cout << inString; // do not need an endl here
-  else
-  if (regex_search(inString, sm, str_expr ))
-  {
-    { // it can be Home, Idle, or Run
-      // cout << "I am here (2) " << endl;
-      if (sm[1] == "Idle")
-      {
-        Status = Idle;
-        msg.data = "Idle";
-      }
-      if (sm[1] == "Run")
-      {
-        Status = Running;
-        msg.data = "Run";
-      }
-      if (sm[1] == "Home")
-      {
-        Status = Home;
-        msg.data = "Home";
-      }
-      if (Prev_Status != Status)
-      {
-        cout << "Status changed: " << inString; // do not need an endl here, inString has it.
-        status_pub.publish(msg); // only publish when changed
-      }
-      //cout << "I am here (3); " << sm[1] << endl;
-      position.linear.x = stod(sm[2]);
-      position.linear.y = stod(sm[3]);
-      position.linear.z = stod(sm[4]);
-      position.angular.x = 0.0;
-      pos_pub.publish(position);
-    }
-  }
-  else cout << "Sorry, no match found!" << endl << inString << endl;
-
-}
-*/
-
 void cmdGrbl(grblCmd cmd)
 {
   // responded = false;
@@ -293,7 +218,6 @@ void cmdGrbl(grblCmd cmd)
   }
   // Wait for Grbl Response to the command just sent
   while (responded == false) usleep(10000); // wait for 10 milli second
-
 }
 
 void cmdCb(const std_msgs::String::ConstPtr& msg)
