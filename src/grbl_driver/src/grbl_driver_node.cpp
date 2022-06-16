@@ -271,7 +271,7 @@ void cmdGrbl(grblCmd cmd)
   switch (cmd) {
     case Wakeup:
       cout << "Waking GRBL up ..." << endl;
-      serial.writeString("\n");
+      serial.writeString("G0 G21 G94 G90 G54 G17\n");
       break;
     case Homing:
       cout << "GRBL Homing ..." << endl;
@@ -285,9 +285,9 @@ void cmdGrbl(grblCmd cmd)
       // do not output to screen messages otherwise it will fill the screen.
       serial.writeString("?\n");
       break;
-/*    case OffLaser:
+    case OffLaser:
       serial.writeString("M9\n");
-      break; */
+      break;
     default:
       break;
   }
@@ -353,7 +353,7 @@ int main(int argc, char* argv[])
     loop_rate.sleep();
   }
 
-  //cmdGrbl(OffLaser); // Make sure the laser is off.
+  cmdGrbl(OffLaser); // Make sure the laser is off.
 
   serial.close();
 }

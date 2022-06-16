@@ -101,7 +101,7 @@ double home_off_z = 93.0;
 
 double target_x = 0.0; // mm
 
-double start_x = 87.56; // mm; when z moved -40mm from origin
+double start_x; // mm; when z moved -40mm from origin
 double x_step = 5.0; // mm
 
 double scanningZ = -40; // mm
@@ -156,12 +156,13 @@ void move_scanner_to(double x, double y, double z)
   string host_status = "do not know what! ";
 
   
-    if (!scanStarted)
+  if (!scanStarted)
   {
     char c;
     cout << "Hit enter when ready to start scanning." << endl;
     c = getchar();
     scanStarted = true;
+    start_x = (x - home_off_x);
   }
   else
   {
