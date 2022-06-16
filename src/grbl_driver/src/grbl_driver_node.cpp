@@ -53,7 +53,7 @@ geometry_msgs::Twist position;
  * Global Variables for Status and Position
  */
 enum status { Startup, Alarm, Running, Idle,  OK, Error, Home };
-enum grblCmd { Homing, Wakeup, ViewSettings, Inquire, OffLaser };
+enum grblCmd { Homing, Wakeup, ViewSettings, Inquire, OffLaser, Reset };
 
 status Status = Startup;
 /*
@@ -198,6 +198,10 @@ void cmdGrbl(grblCmd cmd)
       cout << "Waking GRBL up ..." << endl;
       serial.writeString("G0 G21 G94 G90 G54 G17\n");
       break;
+    case Reset:
+      cout << "Reseting GRBL ..." << endl;
+      serial.writeString("\x18\n");
+      break;
     case Homing:
       cout << "GRBL Homing ..." << endl;
       serial.writeString("$H\n");
@@ -259,6 +263,7 @@ int main(int argc, char* argv[])
   // initSerial();
 
   cmdGrbl(Wakeup);
+  cmdGrbl(Reset);
   cmdGrbl(ViewSettings);
   cmdGrbl(Homing);
   cmdGrbl(OffLaser); // Make sure the laser is off.
