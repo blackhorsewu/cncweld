@@ -104,6 +104,8 @@ double target_x = 0.0; // mm
 double start_x = 87.56; // mm; when z moved -40mm from origin
 double x_step = 5.0; // mm
 
+double scanningZ = -40; // mm
+
 /*
  * Global Variables for Status and Position
  */
@@ -153,46 +155,56 @@ void move_scanner_to(double x, double y, double z)
   string grbl_status = "do not know what! ";
   string host_status = "do not know what! ";
 
-  linearX = x - home_off_x - start_x; // scanner head offset - start_x 
-
-  if (y <= home_off_y )
+  
+    if (!scanStarted)
   {
-    linearY = 0;
+    char c;
+    cout << "Hit enter when ready to start scanning." << endl;
+    c = getchar();
+    scanStarted = true;
   }
   else
   {
-    linearY = y - home_off_y;
+    linearX = x - home_off_x - start_x; // scanner head offset - start_x 
+
+    if (y <= home_off_y )
+    {
+      linearY = 0;
+    }
+    else
+    {
+      linearY = y - home_off_y;
+    }
+
+    linearZ = 50 - home_off_z; // because the z moves in reverse direction
+  /*
+    ROS_INFO("Position: x: %.3f", linearX);
+    ROS_INFO("Old Target_x: x: %.3f", target_x);
+  */
+
+    if (grblStatus == Idle) grbl_status = "Idle";
+    if (grblStatus == Running) grbl_status = "Running";
+    if (grblStatus == Home) grbl_status = "Home";
+    if (hostStatus == waitingIdle) host_status = "Waiting Idle";
+    if (hostStatus == G_CodeSent) host_status = "G-Code sent";
+
+    cout << "Grbl status: " << grbl_status << endl;
+    cout << "Host status: " << host_status << endl;
+
+    if ((hostStatus == waitingIdle) && (grblStatus == Idle)) 
+    { // Grbl ready to accept command
+      readyToShow = true;
+      if (target_x <= 0) target_x = x_step; else target_x = linearX + x_step;
+      ROS_INFO("New Target_x: x: %.3f", target_x);
+      linearX = target_x;
+      gcode = "G01 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
+      msg.data = gcode;
+    cout << gcode;
+      grbl_pub.publish(msg);
+      hostStatus = G_CodeSent;
+    cout << "G-Code sent." << endl;
+    }
   }
-
-  linearZ = 50 - home_off_z; // because the z moves in reverse direction
-/*
-  ROS_INFO("Position: x: %.3f", linearX);
-  ROS_INFO("Old Target_x: x: %.3f", target_x);
-*/
-
-  if (grblStatus == Idle) grbl_status = "Idle";
-  if (grblStatus == Running) grbl_status = "Running";
-  if (grblStatus == Home) grbl_status = "Home";
-  if (hostStatus == waitingIdle) host_status = "Waiting Idle";
-  if (hostStatus == G_CodeSent) host_status = "G-Code sent";
-
-  cout << "Grbl status: " << grbl_status << endl;
-  cout << "Host status: " << host_status << endl;
-
-  if ((hostStatus == waitingIdle) && (grblStatus == Idle)) 
-  { // Grbl ready to accept command
-    readyToShow = true;
-    if (target_x <= 0) target_x = x_step; else target_x = linearX + x_step;
-    ROS_INFO("New Target_x: x: %.3f", target_x);
-    linearX = target_x;
-    gcode = "G01 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
-    msg.data = gcode;
-  cout << gcode;
-    grbl_pub.publish(msg);
-    hostStatus = G_CodeSent;
-  cout << "G-Code sent." << endl;
-  }
-
 }
 
 void publish_deepest_pt(pcl::PointXYZ deepest_point)
@@ -288,14 +300,6 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
   tf::TransformListener listener;
   tf::StampedTransform  stransform;
 
-  if (!scanStarted)
-  {
-    char c;
-    cout << "Hit enter when ready to start scanning." << endl;
-    c = getchar();
-    scanStarted = true;
-  }
-  else
   try
   {
     listener.waitForTransform(world_frame,
@@ -368,6 +372,10 @@ void statCb(std_msgs::String msg)
       char c;
       cout << "Hit enter when ready to switch on laser." << endl;
       c = getchar();
+      // move the scanner down by 40 mm first
+      out_msg.data = "G0 X0 Y0 Z-40\n";
+      grbl_pub.publish(out_msg);
+      // then switch on the laser
       out_msg.data = "M8\n";
       grbl_pub.publish(out_msg);
       cout << "grbl_pub published: " << out_msg.data << endl;

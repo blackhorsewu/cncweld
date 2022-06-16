@@ -74,74 +74,6 @@ bool startJspPub = false;
 
 regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
 
-/*
-SerialStream serial;
-
-void initSerial()
-{
-  serial.Open( "/dev/ttyACM0" );
-  if ( !serial.good() )
-  {
-    std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] "
-              << "Error: Could not open serial port."
-              << std::endl ;
-    exit(1) ;
-  }
-
-  serial.SetBaudRate(SerialStreamBuf::BAUD_115200) ;
-  if ( !serial.good() )
-  {
-    std::cerr << "Error: Could not set the baud rate." << std::endl ;
-    exit(1) ;
-  }
-
-  cout << "Serial port to GRBL setup completed." << endl;
-
-}
-
-
-void waitGrblResponse()
-{
-  string inString;
-
-  while( serial.rdbuf()->in_avail() == 0 ) // Wait for character
-  {
-      usleep(100000) ; // 100 milli second or 0.1 second
-  }
-
-  inString = "";
-  while( serial.rdbuf()->in_avail() > 0  )
-  {
-    char next_byte;
-    serial.get(next_byte);
-    inString += next_byte;
-    if ( next_byte == '\n' )
-      {
-        if (inString != "ok\n")
-        cout << inString;
-        inString = "";
-      }
-  }
-
-}
-*/
-/*
-void initJointStates()
-{
-  jointState.name.push_back("X_link_Y_link_joint");
-  jointState.name.push_back("Y_link_Z_link_joint");
-  jointState.name.push_back("base_link_X_link_joint");
-  jointState.name.push_back("Z_link_tool0");
-
-//  for (int i=0; i < 4; i++) // allocate memory and initialize joint values
-//    jointState.position.push_back(0.0);
-  jointState.position.push_back(0.0);
-  jointState.position.push_back(0.0);
-  jointState.position.push_back(0.09);
-  jointState.position.push_back(0.0);
-}
-*/
-
 /* This work for Async Serial */
 
 string in_line="";
@@ -153,21 +85,25 @@ bool touched = false;
 void process(string inString)
 {
   std_msgs::String msg;
+  status PrevStatus;
 
   if (completed)
   {
     responded = true;
+
+    if (inString[0] == '$') cout << inString;
 
 //cout << inString << endl;
     smatch sm;
     if (regex_search(inString, sm, str_expr ))
     {
       // cout << sm[0] << endl;
+      PrevStatus = Status;
       if (sm[0] == "ok")
         {
           Status = OK;
           msg.data = "OK";
-          status_pub.publish(msg);
+          if (PrevStatus != Status) status_pub.publish(msg);
         }
       else 
       { // it should then be either Idle or Run
@@ -175,47 +111,31 @@ void process(string inString)
         {
           Status = Idle;
           msg.data = "Idle";
-          status_pub.publish(msg);
         }
         if (sm[1] == "Run")
         {
           Status = Running;
           msg.data = "Run";
-          status_pub.publish(msg);
         }
         if (sm[1] == "Home")
         {
           Status = Home;
           msg.data = "Home";
-          status_pub.publish(msg);
         }
-
-        // if it has no position data do not publish it
-  //      if ((startJspPub) && (sizeof(sm)==5))
-  //cout << sizeof(sm)/sizeof(sm[0]) << endl;
-        if ((startJspPub))
-  /*
+        if (sm[1] == "Alarm")
         {
-          jointState.header.stamp = ros::Time::now();
-  //        jointState.header.stamp = ros::Time(0);
-          jointState.position[0] = stod(sm[3]) / 1e3;
-          jointState.position[1] = stod(sm[4]) / 1e3;
-          jointState.position[2] = (stod(sm[2]) + 90) / 1e3;
-          jointState.position[3] = 0.0;
+          Status = Home;
+          msg.data = "Alarm";
+        }
+        if (PrevStatus != Status) status_pub.publish(msg);
 
-          jsp_pub.publish(jointState);
-        }
-  */
-        {
-          position.linear.x = stod(sm[2]);
-          position.linear.y = stod(sm[3]);
-          position.linear.z = stod(sm[4]);
-          position.angular.x = 0.0;
-          pos_pub.publish(position);
-        }
+        position.linear.x = stod(sm[2]);
+        position.linear.y = stod(sm[3]);
+        position.linear.z = stod(sm[4]);
+        position.angular.x = 0.0;
+        pos_pub.publish(position);
       }
     }
-    // in_line = "";
   }
 }
 
@@ -365,9 +285,9 @@ void cmdGrbl(grblCmd cmd)
       // do not output to screen messages otherwise it will fill the screen.
       serial.writeString("?\n");
       break;
-    case OffLaser:
+/*    case OffLaser:
       serial.writeString("M9\n");
-      break;
+      break; */
     default:
       break;
   }
@@ -419,10 +339,6 @@ int main(int argc, char* argv[])
   cmdGrbl(Homing);
   cmdGrbl(OffLaser); // Make sure the laser is off.
 
-  // Do not publish joint state here now!
-  // initJointStates(); // Initialise the joint States before publishing
-  startJspPub = true;
-
   ros::Subscriber cmd_sub = nh.subscribe<std_msgs::String>("grbl_cmd", 10, cmdCb);
   // inqGrbl();
   ros::Rate loop_rate(100); // get GRBL status 10 times a second
@@ -437,7 +353,7 @@ int main(int argc, char* argv[])
     loop_rate.sleep();
   }
 
-  cmdGrbl(OffLaser); // Make sure the laser is off.
+  //cmdGrbl(OffLaser); // Make sure the laser is off.
 
   serial.close();
 }
