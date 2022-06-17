@@ -92,7 +92,7 @@ void process(string inString)
   {
     responded = true;
 
-    if (inString[0] == '$') cout << inString;
+    if (inString[0] == '$') ; // cout << inString;
 
 //cout << inString << endl;
     smatch sm;
@@ -226,12 +226,12 @@ void cmdGrbl(grblCmd cmd)
 
 void cmdCb(const std_msgs::String::ConstPtr& msg)
 {
-  cout << "Driver received cmd: " << msg->data << endl;
+  // cout << "Driver received cmd: " << msg->data << endl;
   // responded = false;
   // The msg is a string of G-Code and can be sent to Grbl directly
   serial.writeString(msg->data);
   // serial<<msg->data<<endl;
-  cout << "Just sent the msg to Grbl: " << msg->data << endl;
+  // cout << "Just sent the msg to Grbl: " << msg->data << endl;
   // Wait for Grbl Response
   while (responded == false) usleep(10000); // wait for steps of 0.001 second
   // cout << "response received from Grbl." << endl;

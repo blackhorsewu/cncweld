@@ -106,6 +106,9 @@ double x_step = 5.0; // mm
 
 double scanningZ = -40; // mm
 
+int scanLength = 0; // mm
+bool scanDone = false;
+
 /*
  * Global Variables for Status and Position
  */
@@ -159,47 +162,66 @@ void move_scanner_to(double x, double y, double z)
   if (!scanStarted)
   {
     char c;
-    cout << "Hit enter when ready to start scanning." << endl;
+
+    // cout << "Hit enter when ready to start scanning." << endl;
+    cout << "Please input scan length in mm (whole digit) when ready" << endl;
+    cin >> scanLength;
     c = getchar();
     scanStarted = true;
     start_x = (x - home_off_x);
   }
-  else
+  else if (!scanDone)
   {
     linearX = x - home_off_x - start_x; // scanner head offset - start_x 
 
-    if (y <= home_off_y )
+    if (linearX < scanLength)
     {
-      linearY = 0;
-    }
-    else
-    {
-      linearY = y - home_off_y;
-    }
+      if (y <= home_off_y )
+      {
+        linearY = 0;
+      }
+      else
+      {
+        linearY = y - home_off_y;
+      }
 
-    linearZ = 50 - home_off_z; // because the z moves in reverse direction
-  
-    if (grblStatus == Idle) grbl_status = "Idle";
-    if (grblStatus == Running) grbl_status = "Running";
-    if (grblStatus == Home) grbl_status = "Home";
-    if (hostStatus == waitingIdle) host_status = "Waiting Idle";
-    if (hostStatus == G_CodeSent) host_status = "G-Code sent";
+      linearZ = 50 - home_off_z; // because the z moves in reverse direction
+    
+      if (grblStatus == Idle) grbl_status = "Idle";
+      if (grblStatus == Running) grbl_status = "Running";
+      if (grblStatus == Home) grbl_status = "Home";
+      if (hostStatus == waitingIdle) host_status = "Waiting Idle";
+      if (hostStatus == G_CodeSent) host_status = "G-Code sent";
 
-    // cout << "Grbl status: " << grbl_status << endl;
-    // cout << "Host status: " << host_status << endl;
+      // cout << "Grbl status: " << grbl_status << endl;
+      // cout << "Host status: " << host_status << endl;
 
-    if ((hostStatus == waitingIdle) && (grblStatus == Idle)) 
-    { // Grbl ready to accept command
-      readyToShow = true;
-      if (target_x <= 0) target_x = x_step; else target_x = linearX + x_step;
-      ROS_INFO("New Target_x: x: %.3f", target_x);
-      linearX = target_x;
-      gcode = "G01 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
+      if ((hostStatus == waitingIdle) && (grblStatus == Idle)) 
+      { // Grbl ready to accept command
+        readyToShow = true;
+        if (target_x <= 0) target_x = x_step; else target_x = linearX + x_step;
+        // ROS_INFO("New Target_x: x: %.3f", target_x);
+        linearX = target_x;
+        gcode = "G01 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
+        msg.data = gcode;
+        // cout << gcode;
+        grbl_pub.publish(msg);
+        hostStatus = G_CodeSent;
+        // cout << "G-Code sent." << endl;
+      }
+    } else
+    { // scanning is done
+      scanDone = true;
+      cout << "Welding groove scanning is done, laser is switching off and the machine is going home." << endl;
+      gcode = "M9\n"; // switch off laser
       msg.data = gcode;
-      // cout << gcode;
       grbl_pub.publish(msg);
       hostStatus = G_CodeSent;
-      // cout << "G-Code sent." << endl;
+      // Go home
+      gcode = "$H\n"; // Go home
+      msg.data = gcode;
+      grbl_pub.publish(msg);
+      hostStatus = G_CodeSent;
     }
   }
 }
@@ -274,7 +296,7 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
      ((x != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (x != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
         && (z != std::numeric_limits<double>::infinity())))   
   {   // then this is a normal point
-    ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
+    // ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
 
     move_scanner_to(x, y, z);
     // There should be another one to move the torch to.
@@ -358,7 +380,7 @@ int getrosparams(ros::NodeHandle pnh)
 
 void statCb(std_msgs::String msg)
 {
-  cout << "Grbl status received: " << msg.data << endl;
+  // cout << "Grbl status received: " << msg.data << endl;
   if (msg.data == "Home")
   {
     // cout << "I am here (1)." << endl;
@@ -375,7 +397,7 @@ void statCb(std_msgs::String msg)
       // then switch on the laser
       out_msg.data = "M8\n";
       grbl_pub.publish(out_msg);
-      cout << "grbl_pub published: " << out_msg.data << endl;
+      // cout << "grbl_pub published: " << out_msg.data << endl;
     }
     grblStatus = Home;
   } 
