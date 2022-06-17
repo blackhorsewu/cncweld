@@ -105,6 +105,8 @@ double start_x; // mm; when z moved -40mm from origin
 double x_step = 5.0; // mm
 
 double scanningZ = -40; // mm
+double midCloudY = 0.0;
+double diffY = 0.0;
 
 int scanLength = 0; // mm
 bool scanDone = false;
@@ -169,6 +171,21 @@ void move_scanner_to(double x, double y, double z)
     c = getchar();
     scanStarted = true;
     start_x = (x - home_off_x);
+    cout << "mid cloud y: " << midCloudY << "; deepest y: " << y << endl;
+    cout << "midCloudY - deepest y: " << midCloudY - y << endl;
+    diffY = midCloudY - y;
+     // when y >= midCloudY meaning the scanner is too high in y and should be reduced
+     // but it is already 0 cannot be reduced, so leave it as it is until it is bigger
+     // than 0 or equal to 0
+    if (y < midCloudY) // then move y to bigger value by the difference, that is midCloudY
+    {
+      gcode = "G0 X"+to_string(x-home_off_x-start_x) // G0 meaning move quickly
+              +" Y"+to_string(midCloudY-home_off_y)
+              +" Z"+to_string(50-home_off_z) + "\n";
+      msg.data = gcode;
+      cout << gcode;
+      grbl_pub.publish(msg);
+    }
   }
   else if (!scanDone)
   {
@@ -182,7 +199,7 @@ void move_scanner_to(double x, double y, double z)
       }
       else
       {
-        linearY = y - home_off_y;
+        linearY = y - home_off_y; // - diffY;
       }
 
       linearZ = 50 - home_off_z; // because the z moves in reverse direction
@@ -269,6 +286,8 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
   double z = 0.0;
 
   int dpst = 0;
+
+  midCloudY = pointcloud[cloudSize/2].y * 1e3;
 
   for (int i = 0; i < (cloudSize); ++i) // Neglect the first 50 points
   {
