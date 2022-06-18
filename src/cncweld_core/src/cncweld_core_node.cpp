@@ -171,21 +171,15 @@ void move_scanner_to(double x, double y, double z)
     c = getchar();
     scanStarted = true;
     start_x = (x - home_off_x);
-    cout << "mid cloud y: " << midCloudY << "; deepest y: " << y << endl;
-    cout << "midCloudY - deepest y: " << midCloudY - y << endl;
-    diffY = midCloudY - y;
-     // when y >= midCloudY meaning the scanner is too high in y and should be reduced
-     // but it is already 0 cannot be reduced, so leave it as it is until it is bigger
-     // than 0 or equal to 0
-    if (y < midCloudY) // then move y to bigger value by the difference, that is midCloudY
-    {
-      gcode = "G0 X"+to_string(x-home_off_x-start_x) // G0 meaning move quickly
-              +" Y"+to_string(midCloudY-home_off_y)
-              +" Z"+to_string(50-home_off_z) + "\n";
-      msg.data = gcode;
-      cout << gcode;
-      grbl_pub.publish(msg);
-    }
+//    cout << "mid cloud y: " << midCloudY << "; deepest y: " << y << endl;
+//    cout << "midCloudY - deepest y: " << midCloudY - y << endl;
+    diffY = y - midCloudY;
+    gcode = "G0 X"+to_string(x-home_off_x-start_x) // G0 meaning move quickly
+            +" Y"+to_string(y-home_off_y-diffY)
+            +" Z"+to_string(50-home_off_z) + "\n";
+    msg.data = gcode;
+//    cout << gcode;
+    grbl_pub.publish(msg);
   }
   else if (!scanDone)
   {
@@ -219,7 +213,9 @@ void move_scanner_to(double x, double y, double z)
         if (target_x <= 0) target_x = x_step; else target_x = linearX + x_step;
         // ROS_INFO("New Target_x: x: %.3f", target_x);
         linearX = target_x;
-        gcode = "G01 F300 X"+to_string(linearX)+" Y"+to_string(linearY)+" Z"+to_string(linearZ) + "\n";
+        gcode = "G01 F300 X"+to_string(linearX)+
+                        " Y"+to_string(linearY)+
+                        " Z"+to_string(linearZ)+ "\n";
         msg.data = gcode;
         // cout << gcode;
         grbl_pub.publish(msg);
@@ -229,7 +225,7 @@ void move_scanner_to(double x, double y, double z)
     } else
     { // scanning is done
       scanDone = true;
-      cout << "Welding groove scanning is done, laser is switching off and the machine is going home." << endl;
+      cout << "Scanning is done, switching laser off and machine going home." << endl;
       gcode = "M9\n"; // switch off laser
       msg.data = gcode;
       grbl_pub.publish(msg);
@@ -343,7 +339,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& ros_cloud)
     listener.waitForTransform(world_frame,
                               ros_cloud->header.frame_id,
                               ros::Time::now(),
-                              ros::Duration(0.5));
+                              ros::Duration(0.75));
     listener.lookupTransform (world_frame,
                               ros_cloud->header.frame_id,
                               ros::Time(0),
@@ -408,7 +404,7 @@ void statCb(std_msgs::String msg)
     {
       std_msgs::String out_msg;
       char c;
-      cout << "Hit enter when ready to switch on laser." << endl;
+      cout << "Hit enter when ready to switch on laser." ;
       c = getchar();
       // move the scanner down by 40 mm first
       out_msg.data = "G0 X0 Y0 Z-40\n";

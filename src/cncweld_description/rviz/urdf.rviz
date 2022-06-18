@@ -4,8 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /RobotModel1
-        - /RobotModel1/Links1
         - /RobotModel1/Links1/X_link1/Position1
         - /RobotModel1/Links1/lj_v7200_optical_frame1
         - /RobotModel1/Links1/lj_v7200_optical_frame1/Position1
@@ -34,7 +32,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Front line
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -60,7 +58,7 @@ Visualization Manager:
       Plane Cell Count: 1000
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 1
+    - Alpha: 0
       Class: rviz/RobotModel
       Collision Enabled: false
       Enabled: true
@@ -193,7 +191,7 @@ Visualization Manager:
       Marker Topic: /deepest_point
       Name: Deepest points
       Namespaces:
-        {}
+        dpst_pt: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -224,25 +222,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.03304922580719
+      Distance: 0.70399409532547
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.6430312395095825
-        Y: 0.09263896197080612
-        Z: -0.11018167436122894
+        X: 0.5126788020133972
+        Y: 0.05061398074030876
+        Z: -0.1160343587398529
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.629798173904419
+      Pitch: 0.474798321723938
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 5.633418083190918
+      Yaw: 5.658418655395508
     Saved:
       - Class: rviz/Orbit
         Distance: 1.2575963735580444
