@@ -62,6 +62,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
+#include <fstream>
 
 using namespace std;
 
@@ -111,6 +112,17 @@ double diffY = 0.0;
 int scanLength = 0; // mm
 bool scanDone = false;
 
+struct linearPosition
+{
+  double x;
+  double y;
+  double z;
+};
+
+vector<linearPosition> wayPoints;
+
+visualization_msgs::MarkerArray dpst_pt_array;
+
 /*
  * Global Variables for Status and Position
  */
@@ -132,6 +144,8 @@ struct Position
 bool readyToShow = false;
 bool scanStarted = false;
 
+std::ofstream myfile;
+
 /*
 void jumpTo(double x, double y, double z) // Jump to uses G00
 {
@@ -145,7 +159,30 @@ void moveTo() // Move to uses G01
 {
 
 }
+/*
+void edit_markers()
+{
 
+  for (int id = 0; id <= marker_id; id++)
+  {
+    dpst_pt_array.markers[id].header.frame_id = world_frame;
+    dpst_pt_array.markers[id].header.stamp = ros::Time();
+    dpst_pt_array.markers[id].ns = "dpst_pt";
+    dpst_pt_array.markers[id].action = visualization_msgs::Marker::ADD;
+    dpst_pt_array.markers[id].id = id;
+    // g through each marker and change its colour //
+    dpst_pt_array.markers[id].scale.x = 0.003;
+    dpst_pt_array.markers[id].scale.y = 0.003;
+    dpst_pt_array.markers[id].scale.z = 0.003;
+    dpst_pt_array.markers[id].color.r = 0;
+    dpst_pt_array.markers[id].color.g = 1;
+    dpst_pt_array.markers[id].color.a = 1;
+    dpst_pt_array.markers[id].pose.orientation.w = 1.0;
+    mkr_pub.publish(dpst_pt_array.markers[id]);
+  }
+
+}
+*/
 /*
  * Publish a String topic to grbl_driver to move to the specified position.
  *
@@ -171,8 +208,8 @@ void move_scanner_to(double x, double y, double z)
     c = getchar();
     scanStarted = true;
     start_x = (x - home_off_x);
-//    cout << "mid cloud y: " << midCloudY << "; deepest y: " << y << endl;
-//    cout << "midCloudY - deepest y: " << midCloudY - y << endl;
+    cout << "mid cloud y: " << midCloudY << "; deepest y: " << y << endl;
+    cout << "midCloudY - deepest y: " << midCloudY - y << endl;
     diffY = y - midCloudY;
     gcode = "G0 X"+to_string(x-home_off_x-start_x) // G0 meaning move quickly
             +" Y"+to_string(y-home_off_y-diffY)
@@ -193,7 +230,7 @@ void move_scanner_to(double x, double y, double z)
       }
       else
       {
-        linearY = y - home_off_y; // - diffY;
+        linearY = y - home_off_y - diffY;
       }
 
       linearZ = 50 - home_off_z; // because the z moves in reverse direction
@@ -235,6 +272,11 @@ void move_scanner_to(double x, double y, double z)
       msg.data = gcode;
       grbl_pub.publish(msg);
       hostStatus = G_CodeSent;
+
+      cout << "There are " << marker_id << " way points identified." << endl;
+      myfile.close();
+//      cout << "Hit enter when ready to edit way points.";
+//      edit_markers();
     }
   }
 }
@@ -256,15 +298,28 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
   dpst_pt.color.r = 1;   // in red
   dpst_pt.color.a = 1;   //
 
+  linearPosition wayPoint;
+
   // set the location of the deepest point
   dpst_pt.pose.position.x = deepest_point.x;
   dpst_pt.pose.position.y = deepest_point.y;
   dpst_pt.pose.position.z = deepest_point.z;
 
+  wayPoint.x = deepest_point.x;
+  wayPoint.y = deepest_point.y;
+  wayPoint.z = deepest_point.z;
+
+  wayPoints.push_back(wayPoint);
+
   if (readyToShow)
   {
+//    dpst_pt_array.markers.push_back(dpst_pt);
     // publish the point as a marker in RViz
     mkr_pub.publish(dpst_pt);
+    myfile << "G01 F300 X"
+            << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
+            << (deepest_point.y*1e3-home_off_y-diffY) << " Z" 
+            << (50-home_off_z) << endl;
   }
 }
 
@@ -403,11 +458,13 @@ void statCb(std_msgs::String msg)
     if (grblStatus == Startup) // grblStatus was Startup and now Homed ready to switch on laser
     {
       std_msgs::String out_msg;
+//      out_msg.data = "G0 X0 Y100 Z0\n";
+//      grbl_pub.publish(out_msg);
       char c;
       cout << "Hit enter when ready to switch on laser." ;
       c = getchar();
       // move the scanner down by 40 mm first
-      out_msg.data = "G0 X0 Y0 Z-40\n";
+      out_msg.data = "G0 X0 Y100 Z-40\n";
       grbl_pub.publish(out_msg);
       // then switch on the laser
       out_msg.data = "M8\n";
@@ -436,6 +493,10 @@ int main(int argc, char* argv[])
   cloud_topic = "profiles"; // The cloud published by the Keyence Driver
   world_frame = "world";
   scanner_frame = "lj_v7200_optical_frame";
+
+  myfile.open("waypoints.csv");
+
+  myfile << "X, Y, Z" << endl;
 
   // profile cloud publisher for PCL point clouds
   pub = nh.advertise<pcl::PointCloud<pcl::PointXYZ>>("Y_profiles", 1);
