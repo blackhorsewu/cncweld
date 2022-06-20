@@ -56,7 +56,8 @@ CNCWELD uses GRBL to drive its CNC mechanism.
 
 Pictures of the stepper motors, drivers, lead screws, limit switches and the Arduino should be inserted here.
 
-![Pinout](https://github.com/blackhorsewu/cncweld/blob/2nd-branch/images/grbl-mega-5X%20pinout.jpeg) of the Arduino Mega 2560 for Grbl Mega 5X is 
-different from other grbl.
+|![Pinout](https://github.com/blackhorsewu/cncweld/blob/2nd-branch/images/grbl-mega-5X%20pinout.jpeg)|
+| :--: |
+| Pinout of the Arduino Mega 2560 for Grbl Mega 5X |
 
 
