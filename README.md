@@ -60,4 +60,7 @@ Pictures of the stepper motors, drivers, lead screws, limit switches and the Ard
 | :--: |
 | Pinout of the Arduino Mega 2560 for Grbl Mega 5X |
 
+The *Enable Spindle* pin 6 (`M3` and `M5`) are used to switch on and off the welding torch.
+The *Enable Coolant* pin 8 (`M8` and `M9`) are used to switch on and off the laser scanner.
+
 
