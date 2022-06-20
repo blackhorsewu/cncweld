@@ -103,7 +103,7 @@ double home_off_z = 93.0;
 double target_x = 0.0; // mm
 
 double start_x; // mm; when z moved -40mm from origin
-double x_step = 30.0; // mm
+double x_step = 5.0; // mm
 
 double scanningZ = -40; // mm
 double midCloudY = 0.0;
@@ -278,6 +278,7 @@ void move_scanner_to(double x, double y, double z)
 
       // Before closing the file, make sure the torch is taken up immediately
       myfile << "M5 (Switch off the torch)" << endl;
+      myfile << "G0 Z0" << endl;
       myfile << "G0 X0 Y0 Z0" << endl;
       myfile.close();
     }
@@ -504,7 +505,9 @@ int main(int argc, char* argv[])
 
   // Point Cloud topic
   std::string cloud_topic;
-  
+
+  std_msgs::String msg;
+
   cloud_topic = "profiles"; // The cloud published by the Keyence Driver
   world_frame = "world";
   scanner_frame = "lj_v7200_optical_frame";
@@ -524,13 +527,19 @@ int main(int argc, char* argv[])
 
   std::string topic = nh.resolveName(cloud_topic);
 
-  // Need to start subscribing to grbl status first otherwise will not know its status
-  // to proceed.
-  ros::Subscriber status_sub = nh.subscribe<std_msgs::String>("grbl_status", 10, statCb);
+  while (ros::ok)
+  {
+    // Need to start subscribing to grbl status first otherwise will not know its status
+    // to proceed.
+    ros::Subscriber status_sub = nh.subscribe<std_msgs::String>("grbl_status", 10, statCb);
 
-  // Only subscribe to the scanner point cloud AFTER homing
-  // otherwise, no tf between world and lj_v7200_optical_frame
-  // Actually, now the laser is off on startup and will only switch on by user
-  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
-  ros::spin();
+    // Only subscribe to the scanner point cloud AFTER homing
+    // otherwise, no tf between world and lj_v7200_optical_frame
+    // Actually, now the laser is off on startup and will only switch on by user
+    ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
+    ros::spin();
+  }
+
+  msg.data = "stop";
+  grbl_pub.publish(msg);
 }

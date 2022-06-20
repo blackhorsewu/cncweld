@@ -229,6 +229,7 @@ void cmdCb(const std_msgs::String::ConstPtr& msg)
   // cout << "Driver received cmd: " << msg->data << endl;
   // responded = false;
   // The msg is a string of G-Code and can be sent to Grbl directly
+  if (msg->data == "stop") serial.close();
   serial.writeString(msg->data);
   // serial<<msg->data<<endl;
   // cout << "Just sent the msg to Grbl: " << msg->data << endl;
@@ -263,7 +264,7 @@ int main(int argc, char* argv[])
   // initSerial();
 
   cmdGrbl(Wakeup);
-  cmdGrbl(Reset);
+  // cmdGrbl(Reset);
   cmdGrbl(ViewSettings);
   cmdGrbl(Homing);
   cmdGrbl(OffLaser); // Make sure the laser is off.
@@ -285,4 +286,6 @@ int main(int argc, char* argv[])
   cmdGrbl(OffLaser); // Make sure the laser is off.
 
   serial.close();
+
+  cout << "Serial Port closed." << endl;
 }
