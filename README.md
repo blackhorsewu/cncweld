@@ -64,3 +64,7 @@ The *Enable Spindle* pin 6 (`M3` and `M5`) are used to switch on and off the wel
 The *Enable Coolant* pin 8 (`M8` and `M9`) are used to switch on and off the laser scanner.
 
 
+A [video](videos/CNC Scanning 22 June 2022-1.mp4) showing how a welding groove
+is scanned by the laser scanner.
+
+
