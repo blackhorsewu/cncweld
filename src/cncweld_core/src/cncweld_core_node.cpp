@@ -103,11 +103,13 @@ double home_off_z = 93.0;
 double target_x = 0.0; // mm
 
 double start_x; // mm; when z moved -40mm from origin
-double x_step = 15.0; // mm
+double x_step = 25.0; // mm
 
 double scanningZ = -40; // mm
 double midCloudY = 0.0;
 double diffY = 0.0;
+double laser_torch_off = 4.25; // mm offset between laser and torch
+double vert_off = 36; // mm; 
 
 int scanLength = 0; // mm
 bool scanDone = false;
@@ -148,43 +150,6 @@ bool firstPoint = true;
 std::ofstream myfile;
 
 /*
-void jumpTo(double x, double y, double z) // Jump to uses G00
-{
-  while (Status != Idle) inqGrbl();
-  cout << "Jumping to: " << x << ", " << y << ", " << z << endl;
-  serial <<"G00 X"+to_string(x)+" Y"+to_string(y)+" Z"+to_string(z)<< endl;
-  waitGrblResponse();
-}
-*/
-void moveTo() // Move to uses G01
-{
-
-}
-/*
-void edit_markers()
-{
-
-  for (int id = 0; id <= marker_id; id++)
-  {
-    dpst_pt_array.markers[id].header.frame_id = world_frame;
-    dpst_pt_array.markers[id].header.stamp = ros::Time();
-    dpst_pt_array.markers[id].ns = "dpst_pt";
-    dpst_pt_array.markers[id].action = visualization_msgs::Marker::ADD;
-    dpst_pt_array.markers[id].id = id;
-    // g through each marker and change its colour //
-    dpst_pt_array.markers[id].scale.x = 0.003;
-    dpst_pt_array.markers[id].scale.y = 0.003;
-    dpst_pt_array.markers[id].scale.z = 0.003;
-    dpst_pt_array.markers[id].color.r = 0;
-    dpst_pt_array.markers[id].color.g = 1;
-    dpst_pt_array.markers[id].color.a = 1;
-    dpst_pt_array.markers[id].pose.orientation.w = 1.0;
-    mkr_pub.publish(dpst_pt_array.markers[id]);
-  }
-
-}
-*/
-/*
  * Publish a String topic to grbl_driver to move to the specified position.
  *
  * When moving the CNC Device, there should also be a specified speed.
@@ -197,7 +162,6 @@ void move_scanner_to(double x, double y, double z)
   string gcode;
   string grbl_status = "do not know what! ";
   string host_status = "do not know what! ";
-
   
   if (!scanStarted)
   {
@@ -324,20 +288,21 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
     {
       myfile  << "G0(quickly) X" 
               << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
-              << (deepest_point.y*1e3-home_off_y-diffY) << " Z0" << endl;
+              << (deepest_point.y*1e3-home_off_y-diffY-laser_torch_off) << " Z0" << endl;
       myfile  << "G0(quickly) X" 
               << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
-              << (deepest_point.y*1e3-home_off_y-diffY) << " Z" 
-              << (33-home_off_z) << endl;
+              << (deepest_point.y*1e3-home_off_y-diffY-laser_torch_off) << " Z" 
+              << (vert_off-home_off_z) << endl;
       myfile  << "M3 (Switch on the torch)" << endl;
+      myfile  << "G04 P1 (Wait 1 second for Arc to start)" << endl;
       firstPoint = false;
     }
     else
     {
       myfile  << "G01 F300 X"
               << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
-              << (deepest_point.y*1e3-home_off_y-diffY) << " Z" 
-              << (33-home_off_z) << endl;
+              << (deepest_point.y*1e3-home_off_y-diffY-laser_torch_off) << " Z" 
+              << (vert_off-home_off_z) << endl;
     }
   }
 }
