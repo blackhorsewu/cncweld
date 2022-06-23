@@ -94,7 +94,7 @@ void process(string inString)
 
     if (inString[0] == '$') ; // cout << inString;
 
-//cout << inString << endl;
+// cout << inString << endl;
     smatch sm;
     if (regex_search(inString, sm, str_expr ))
     {
@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
 
   ros::Subscriber cmd_sub = nh.subscribe<std_msgs::String>("grbl_cmd", 10, cmdCb);
   // inqGrbl();
-  ros::Rate loop_rate(100); // get GRBL status 10 times a second
+  ros::Rate loop_rate(40); // get GRBL status 10 times a second
   while (ros::ok)
   {
     // responded = false;

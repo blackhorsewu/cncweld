@@ -161,7 +161,7 @@ Updated on 23 June, 2022.World is moved to direcly under torch.
       link="X_link" />
     <child
       link="Y_link" />
-    <limit effort="1000.0" lower="-0.5" upper="0.2" velocity="0.05"/>
+    <limit effort="100.0" lower="0.0" upper="0.2" velocity="0.05"/>
     <axis  xyz="0 1 0"/>
   </joint>
 
@@ -209,7 +209,7 @@ Updated on 23 June, 2022.World is moved to direcly under torch.
       link="Y_link" />
     <child
       link="Z_link" />
-    <limit effort="1000.0" lower="-0.086" upper="0.0" velocity="0.05"/>
+    <limit effort="100.0" lower="-0.086" upper="0.0" velocity="0.05"/>
     <axis  xyz="0 0 1"/>
   </joint>
 
@@ -222,7 +222,7 @@ Updated on 23 June, 2022.World is moved to direcly under torch.
       link="Z_link" />
     <child
       link="tool0" />
-    <limit effort="1000.0" lower="-3.1416" upper="3.1416" velocity="0.05"/>
+    <limit effort="100.0" lower="-3.1416" upper="3.1416" velocity="0.05"/>
   </joint>
 
 <!--

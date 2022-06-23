@@ -96,14 +96,15 @@ std::string world_frame;
 
 // CNC Machine home offsets in mm
 // Meaning, when the CNC Machine is homed, ROS reports this position
-double home_off_x = 320.0;
+// double home_off_x = 320.0;
+double home_off_x = 0.0;
 double home_off_y = -100.0;
 double home_off_z = 93.0;
 
 double target_x = 0.0; // mm
 
 double start_x; // mm; when z moved -40mm from origin
-double x_step = 25.0; // mm
+double x_step = 5.0; // mm
 
 double scanningZ = -40; // mm
 double midCloudY = 0.0;
@@ -176,26 +177,34 @@ void move_scanner_to(double x, double y, double z)
     cout << "mid cloud y: " << midCloudY << "; deepest y: " << y << endl;
     cout << "midCloudY - deepest y: " << midCloudY - y << endl;
     diffY = y - midCloudY;
+/*
     gcode = "G0 X"+to_string(x-home_off_x-start_x) // G0 meaning move quickly
             +" Y"+to_string(y-home_off_y-diffY)
             +" Z"+to_string(50-home_off_z) + "\n";
+*/
+    gcode = "G0 X"+to_string(x) // G0 meaning move quickly
+            +" Y"+to_string(y)
+            +" Z"+to_string(50-home_off_z) + "\n";
     msg.data = gcode;
-//    cout << gcode;
+cout << gcode;
     grbl_pub.publish(msg);
   }
   else if (!scanDone)
   {
-    linearX = x - home_off_x - start_x; // scanner head offset - start_x 
+
+    linearX = x - home_off_x; // scanner head offset - start_x 
 
     if (linearX < scanLength)
     {
-      if (y <= home_off_y )
+      // if (y <= home_off_y )
+      if (y <= 0)
       {
         linearY = 0;
       }
       else
       {
-        linearY = y - home_off_y - diffY;
+        // linearY = y - home_off_y - diffY;
+        linearY = y; // - diffY;
       }
 
       linearZ = 50 - home_off_z; // because the z moves in reverse direction
@@ -212,14 +221,14 @@ void move_scanner_to(double x, double y, double z)
       if ((hostStatus == waitingIdle) && (grblStatus == Idle)) 
       { // Grbl ready to accept command
         readyToShow = true;
-        if (target_x <= 0) target_x = x_step; else target_x = linearX + x_step;
+        if (target_x < 0) target_x = x_step; else target_x = linearX + x_step;
         // ROS_INFO("New Target_x: x: %.3f", target_x);
         linearX = target_x;
         gcode = "G01 F300 X"+to_string(linearX)+
                         " Y"+to_string(linearY)+
                         " Z"+to_string(linearZ)+ "\n";
         msg.data = gcode;
-        // cout << gcode;
+cout << gcode;
         grbl_pub.publish(msg);
         hostStatus = G_CodeSent;
         // cout << "G-Code sent." << endl;
@@ -287,11 +296,11 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
     if (firstPoint)
     {
       myfile  << "G0(quickly) X" 
-              << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
-              << (deepest_point.y*1e3-home_off_y-diffY-laser_torch_off) << " Z0" << endl;
+              << (deepest_point.x*1e3-home_off_x) << " Y" 
+              << (deepest_point.y*1e3-laser_torch_off) << " Z0" << endl;
       myfile  << "G0(quickly) X" 
-              << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
-              << (deepest_point.y*1e3-home_off_y-diffY-laser_torch_off) << " Z" 
+              << (deepest_point.x*1e3-home_off_x) << " Y" 
+              << (deepest_point.y*1e3-laser_torch_off) << " Z" 
               << (vert_off-home_off_z) << endl;
       myfile  << "M3 (Switch on the torch)" << endl;
       myfile  << "G04 P1 (Wait 1 second for Arc to start)" << endl;
@@ -300,8 +309,8 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
     else
     {
       myfile  << "G01 F300 X"
-              << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
-              << (deepest_point.y*1e3-home_off_y-diffY-laser_torch_off) << " Z" 
+              << (deepest_point.x*1e3-home_off_x) << " Y" 
+              << (deepest_point.y*1e3-laser_torch_off) << " Z" 
               << (vert_off-home_off_z) << endl;
     }
   }
@@ -350,11 +359,9 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
      ((x != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (x != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
         && (z != std::numeric_limits<double>::infinity())))   
   {   // then this is a normal point
-    // ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
+    ROS_INFO("Deepest Point: x: %.2f y: %.2f z: %.2f ", x, y, z );
 
     move_scanner_to(x, y, z);
-    // There should be another one to move the torch to.
-    // The difference is the position in the z direction.
 
     publish_deepest_pt(pointcloud[dpst]);
   }
@@ -507,7 +514,8 @@ int main(int argc, char* argv[])
     ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topic, 1, callback);
     ros::spin();
   }
+//      gcode = "M9\n"; // switch off laser
 
-  msg.data = "stop";
+  msg.data = "M9\n";
   grbl_pub.publish(msg);
 }
