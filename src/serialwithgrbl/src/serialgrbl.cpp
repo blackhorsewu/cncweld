@@ -8,10 +8,13 @@
 using namespace std;
 using namespace LibSerial ;
 
-int main(int argc, char** argv)
-{
   SerialStream serial;
   char c;
+
+int main(int argc, char** argv)
+{
+//  SerialStream serial;
+//  char c;
 
   serial.Open( "/dev/ttyACM0" ) ;
   if ( !serial.good() )
