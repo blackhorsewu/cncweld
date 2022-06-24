@@ -56,11 +56,15 @@ CNCWELD uses GRBL to drive its CNC mechanism.
 
 Pictures of the stepper motors, drivers, lead screws, limit switches and the Arduino should be inserted here.
 
-|![Pinout](https://github.com/blackhorsewu/cncweld/blob/2nd-branch/images/grbl-mega-5X%20pinout.jpeg)|
+|![Pinout](images/grbl-mega-5X%20pinout.jpeg)|
 | :--: |
 | Pinout of the Arduino Mega 2560 for Grbl Mega 5X |
 
 The *Enable Spindle* pin 6 (`M3` and `M5`) are used to switch on and off the welding torch.
 The *Enable Coolant* pin 8 (`M8` and `M9`) are used to switch on and off the laser scanner.
+
+
+A [video](videos/CNC%20Scanning%2022%20June%202022-1.mp4) showing how a welding groove
+is scanned by the laser scanner.
 
 

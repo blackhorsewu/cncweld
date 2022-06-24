@@ -15,6 +15,8 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
                          added. The is necessary for the base_link is above the bottom
                          of the Device and fixed joint added is to lift the whole 
                          thing up by 16.8mm.
+
+Updated on 23 June, 2022.World is moved to direcly under torch.
 -->
 
 <robot name="robot_description" xmlns:xacro="http://ros.org/wiki/xacro">
@@ -26,7 +28,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
 -->
   <joint name="world_base_link" type="fixed">
 <!--    <origin xyz="0.0 0.0 0.0168" rpy="0.0 0.0 0.0" /> -->
-    <origin xyz="0.0 0.0 0.02" rpy="0.0 0.0 0.0" />
+    <origin xyz="-0.32 0.09 0.02" rpy="0.0 0.0 0.0" />
     <parent link="world" />
     <child  link="base_link" />
   </joint>
@@ -101,7 +103,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
     type="prismatic">
 
     <origin
-      xyz="0.09 0.0 0.083" rpy="0.0 0.0 0.0" />
+      xyz="0.09 0.00 0.083" rpy="0.0 0.0 0.0" />
 <!--
     <origin
       xyz="0.0 0.0 0.0998" rpy="0.0 0.0 0.0" /> -->
@@ -110,7 +112,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
     <child
       link="X_link" />
     <axis  xyz="1 0 0"/>
-    <limit effort="1000.0" lower="0.09" upper="0.75" velocity="0.05"/>
+    <limit effort="100.0" lower="0.0" upper="0.75" velocity="0.05"/>
   </joint>
 
 <!--
@@ -159,7 +161,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
       link="X_link" />
     <child
       link="Y_link" />
-    <limit effort="1000.0" lower="0.0" upper="0.18" velocity="0.05"/>
+    <limit effort="100.0" lower="0.0" upper="0.2" velocity="0.05"/>
     <axis  xyz="0 1 0"/>
   </joint>
 
@@ -207,7 +209,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
       link="Y_link" />
     <child
       link="Z_link" />
-    <limit effort="1000.0" lower="-0.086" upper="0.0" velocity="0.05"/>
+    <limit effort="100.0" lower="-0.086" upper="0.0" velocity="0.05"/>
     <axis  xyz="0 0 1"/>
   </joint>
 
@@ -220,7 +222,7 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
       link="Z_link" />
     <child
       link="tool0" />
-    <limit effort="1000.0" lower="-3.1416" upper="3.1416" velocity="0.05"/>
+    <limit effort="100.0" lower="-3.1416" upper="3.1416" velocity="0.05"/>
   </joint>
 
 <!--
