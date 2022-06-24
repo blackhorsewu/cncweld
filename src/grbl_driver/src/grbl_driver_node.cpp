@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
   status_pub = nh.advertise<std_msgs::String>("grbl_status", 1);
 
   // Clear the screen first
-  std::system("clear");
+  // std::system("clear");
 
   serial.setCallback(received);
   // initSerial();

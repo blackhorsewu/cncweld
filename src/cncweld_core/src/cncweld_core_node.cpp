@@ -109,8 +109,8 @@ double x_step = 5.0; // mm
 double scanningZ = -40; // mm
 double midCloudY = 0.0;
 double diffY = 0.0;
-double laser_torch_off = 4.25; // mm offset between laser and torch
-double vert_off = 36; // mm; 
+double laser_torch_off = 4.0; // mm offset between laser and torch
+double vert_off = 32; // mm; 
 
 int scanLength = 0; // mm
 bool scanDone = false;
@@ -174,9 +174,10 @@ void move_scanner_to(double x, double y, double z)
     c = getchar();
     scanStarted = true;
     start_x = (x - home_off_x);
-    cout << "mid cloud y: " << midCloudY << "; deepest y: " << y << endl;
+cout << "start_x: " << start_x << "mm " << endl;
+/*    cout << "mid cloud y: " << midCloudY << "; deepest y: " << y << endl;
     cout << "midCloudY - deepest y: " << midCloudY - y << endl;
-    diffY = y - midCloudY;
+    diffY = y - midCloudY;*/
 /*
     gcode = "G0 X"+to_string(x-home_off_x-start_x) // G0 meaning move quickly
             +" Y"+to_string(y-home_off_y-diffY)
@@ -296,11 +297,11 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
     if (firstPoint)
     {
       myfile  << "G0(quickly) X" 
-              << (deepest_point.x*1e3-home_off_x) << " Y" 
-              << (deepest_point.y*1e3-laser_torch_off) << " Z0" << endl;
+              << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
+              << (deepest_point.y*1e3+laser_torch_off) << " Z0" << endl;
       myfile  << "G0(quickly) X" 
-              << (deepest_point.x*1e3-home_off_x) << " Y" 
-              << (deepest_point.y*1e3-laser_torch_off) << " Z" 
+              << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
+              << (deepest_point.y*1e3+laser_torch_off) << " Z" 
               << (vert_off-home_off_z) << endl;
       myfile  << "M3 (Switch on the torch)" << endl;
       myfile  << "G04 P1 (Wait 1 second for Arc to start)" << endl;
@@ -309,8 +310,8 @@ void publish_deepest_pt(pcl::PointXYZ deepest_point)
     else
     {
       myfile  << "G01 F300 X"
-              << (deepest_point.x*1e3-home_off_x) << " Y" 
-              << (deepest_point.y*1e3-laser_torch_off) << " Z" 
+              << (deepest_point.x*1e3-home_off_x-start_x) << " Y" 
+              << (deepest_point.y*1e3+laser_torch_off) << " Z" 
               << (vert_off-home_off_z) << endl;
     }
   }
@@ -351,6 +352,9 @@ void deepest_pt(pcl::PointCloud<pcl::PointXYZ> pointcloud)
   x = pointcloud[dpst].x * 1e3;
   y = pointcloud[dpst].y * 1e3;
   z = pointcloud[dpst].z * 1e3;
+
+  diffY = y-midCloudY;
+  ROS_INFO("DiffY:  %.3fmm ", diffY);
 
   if (((z != KEYENCE_INFINITE_DISTANCE_VALUE_SI) && (z != KEYENCE_INFINITE_DISTANCE_VALUE_SI2)
         && (z != std::numeric_limits<double>::infinity())) &&
