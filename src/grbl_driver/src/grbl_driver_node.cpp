@@ -73,7 +73,7 @@ struct Position
 bool responded = false;
 bool startJspPub = false;
 
-regex str_expr("ok|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
+regex str_expr("ok|error|<([A-Z][a-z]+)\\|WPos:(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+),(-?[0-9]+\\.[0-9]+)");
 
 /* This work for Async Serial */
 
@@ -105,6 +105,15 @@ void process(string inString)
           Status = OK;
           msg.data = "OK";
           if (PrevStatus != Status) status_pub.publish(msg);
+        }
+      else if (sm[0] == "error")
+        {
+          Status = Error;
+          msg.data = "Error";
+          if (PrevStatus != Status)
+          { status_pub.publish(msg);
+            cout << inString << endl;
+          }
         }
       else 
       { // it should then be either Idle or Run

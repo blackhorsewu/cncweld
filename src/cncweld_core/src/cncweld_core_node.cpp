@@ -104,7 +104,7 @@ double home_off_z = 93.0;
 double target_x = 0.0; // mm
 
 double start_x; // mm; when z moved -40mm from origin
-double x_step = 5.0; // mm
+double x_step = 2.0; // mm
 
 double scanningZ = -40; // mm
 double midCloudY = 0.0;
