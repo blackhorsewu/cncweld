@@ -8,5 +8,11 @@
         "/opt/ros/melodic/lib/python2.7/dist-packages"
 
     ],
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "cSpell.words": [
+        "CNCWELD",
+        "devel",
+        "GRBL",
+        "Keyence"
+    ]
 }
