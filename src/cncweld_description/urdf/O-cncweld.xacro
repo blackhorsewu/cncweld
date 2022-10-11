@@ -17,9 +17,6 @@ updated on 26 May 2022,  A world link is added and a world to base_link fixed jo
                          thing up by 16.8mm.
 
 Updated on 23 June, 2022.World is moved to direcly under torch.
-
-11 October 2022. for the 3rd branch.
-This is new for the Consealed Lead Screws.
 -->
 
 <robot name="robot_description" xmlns:xacro="http://ros.org/wiki/xacro">
@@ -269,6 +266,16 @@ This is new for the Consealed Lead Screws.
     <child
       link="torch" />
   </joint>
+
+<!--
+<link name="lj_v7200_optical_frame" />
+
+<joint name="optical_frame" type="fixed">
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <parent link="lj_v7200_optical_frame"/>
+  <child link="lj_v7200_optical_frame"/>
+</joint>
+-->
 
 <!--
   The tool0 to keyence_optical_frame fixed Joint
