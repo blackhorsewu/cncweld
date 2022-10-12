@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(keyence_experimental)
-add_compile_options(-std=c++11 -Wall -Wextra)
+add_compile_options(-std=c++14 -Wall -Wextra)
+set(CMAKE_CXX_STANDARD 14)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS

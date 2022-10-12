@@ -30,8 +30,7 @@ This is new for the Consealed Lead Screws.
   The world to base link fixed Joint
 -->
   <joint name="world_base_link" type="fixed">
-<!--    <origin xyz="0.0 0.0 0.0168" rpy="0.0 0.0 0.0" /> -->
-    <origin xyz="-0.32 0.09 0.02" rpy="0.0 0.0 0.0" />
+    <origin xyz="0 0 0" rpy="0.0 0.0 0.0" />
     <parent link="world" />
     <child  link="base_link" />
   </joint>
@@ -154,11 +153,6 @@ This is new for the Consealed Lead Screws.
   <joint
     name="X_link_Y_link_joint"
     type="prismatic">
-    <!--
-    <origin
-      xyz="0.08 -0.058 -0.041" rpy="0.0 0.0 0.0" />
-    -->
-<!--    <origin xyz="0.08 -0.10 -0.041" rpy="0.0 0.0 0.0" /> -->
     <origin xyz="0.08 -0.09 -0.05" rpy="0.0 0.0 0.0" />
     <parent
       link="X_link" />
@@ -197,5 +191,23 @@ This is new for the Consealed Lead Screws.
       </geometry>
     </collision>
   </link>
+
+<!--
+  The Y link to Z_link Prismatic Joint
+-->
+  <joint
+    name="Y_link_Z_link_joint"
+    type="prismatic">
+<!--
+    <origin xyz="0.045 0.0 0.0" rpy="0.0 0.0 0.0" />
+-->
+    <origin xyz="0.068 0.0 0.23" rpy="0.0 0.0 0.0" />
+    <parent
+      link="Y_link" />
+    <child
+      link="Z_link" />
+    <limit effort="100.0" lower="-0.086" upper="0.0" velocity="0.05"/>
+    <axis  xyz="0 0 1"/>
+  </joint>
 
 </robot>

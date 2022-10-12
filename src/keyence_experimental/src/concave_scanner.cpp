@@ -8,7 +8,7 @@
  * node, which was downloaded from ROS Industrial.                              *
  * 
  * This program subscribes to the topic: /profiles published by Keyence Driver  *
- * node. It then concantenate these individual point clouds of a scan line into *
+ * node. It then concatenates these individual point clouds of a scan line into *
  * a cumulated surface point cloud. This point cloud is then published via the  *
  * topic: /Y_profiles. At the same time, this program also works out the deepest*
  * point of every individual scan line and publish these points as Visualization*
