@@ -6,11 +6,11 @@
   <arg name="cncweld" />
   <param name="robot_description" command="xacro $(find cncweld_description)/urdf/cncweld.xacro" />
 
-  <!-- Use the joint state publisher specially written for cncweld
-     This will change to be built-in in cncweld_core     
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"
+  <!-- Use the joint state publisher specially written for cncweld 
+     This will change to be built-in in cncweld_core -->    
+  <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui"
     output="screen" /> 
--->
+
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cncweld_description)/rviz/urdf.rviz" />
