@@ -149,12 +149,12 @@ This is new for the Consealed Lead Screws.
   <joint
     name="X_link_Y_link_joint"
     type="prismatic">
-    <origin xyz="0.0 -0.0 -0.0" rpy="0.0 0.0 0.0" />
+    <origin xyz="0.095 0.064 -0.041" rpy="0.0 0.0 0.0" />
     <parent
       link="X_link" />
     <child
       link="Y_link" />
-    <limit effort="100.0" lower="0.0" upper="0.2" velocity="0.05"/>
+    <limit effort="100.0" lower="0.0" upper="0.365" velocity="0.05"/>
     <axis  xyz="0 1 0"/>
   </joint>
 
@@ -194,12 +194,12 @@ This is new for the Consealed Lead Screws.
   <joint
     name="Y_link_Z_link_joint"
     type="prismatic">
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <origin xyz="0.016 0.0 0.2855" rpy="0.0 0.0 0.0" />
     <parent
       link="Y_link" />
     <child
       link="Z_link" />
-    <limit effort="100.0" lower="-0.086" upper="0.0" velocity="0.05"/>
+    <limit effort="100.0" lower="-0.221" upper="0.0" velocity="0.05"/>
     <axis  xyz="0 0 1"/>
   </joint>
 
