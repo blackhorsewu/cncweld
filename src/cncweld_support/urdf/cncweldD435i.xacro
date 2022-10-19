@@ -33,7 +33,7 @@
        Torch is separately described.
   -->
   
-  <xacro:include filename="$(find cnc_description)/urdf/cnc.urdf" />
+  <xacro:include filename="$(find cncweld_description)/urdf/cncweld.xacro" />
 
   <!-- arm Do not know how to handle this yet.
   <xacro:arg name="kinematics_config" default="$(find ur_description)/config/ur5_default.yaml"/>
@@ -49,7 +49,7 @@
   <joint name="world_to_base_link" type="fixed">
     <parent link="world" />
     <child link="base_link" />
-    <origin xyz="0.044 0.0 0.02" rpy="0.0 0.0 0.0" />
+    <origin xyz="0.0 -0.25 0.0" rpy="0.0 0.0 0.0" />
   </joint>
 
   <!-- defining tools -->
@@ -63,7 +63,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/mere_torch.STL" />
+          filename="package://cncweld_description/meshes/mere_torch.STL" />
       </geometry>
       <material
         name="">
@@ -77,7 +77,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://cnc_description/meshes/mere_torch.STL" />
+          filename="package://cncweld_description/meshes/mere_torch.STL" />
       </geometry>
     </collision>
   </link>
@@ -99,45 +99,11 @@
     <child  link="TorchTip" />
   </joint>
 
-<!-- (4) The Intel RealSense D435i RGBD camera on a 3D printed holder -->
-
-  <link name="CamHolder">
-    <visual>
-      <origin
-        xyz="0.0 0.0 0.0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://cnc_description/meshes/mereCamHolder.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0.0 0.0 0.0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://cnc_description/meshes/mereCamHolder.STL" />
-      </geometry>
-    </collision>
-  </link>
-
-  <joint name="tool0_to_CamHolder" type="fixed">
-    <origin xyz="-0.027 0.005 0.002" rpy="0.0 0.0 0.0" />
-    <parent link="tool0" />
-    <child  link="CamHolder" />
-  </joint>
-
-  <!-- Import the realsense D435i description -->
+  <!-- Import the realsense D435i description 
 
   <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
   <xacro:sensor_d435 parent="tool0" use_nominal_extrinsics="true" name="d435i">
     <origin xyz=" 0.14515 0 0.0" rpy="${pi} ${pi/2} ${pi}"/>
   </xacro:sensor_d435>
-
+-->
 </robot>
