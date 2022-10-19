@@ -1,5 +1,5 @@
-## <p align="center"> Chinese National Engineering Research Centre for Steel Construction (Hong Kong Branch) </p>
-## <p align="center"> 国家钢结构工程技术研究中心 （香港分中心）</p>
+# <p align="center"> Chinese National Engineering Research Centre for Steel Construction (Hong Kong Branch) </p>
+# <p align="center"> 国家钢结构工程技术研究中心 （香港分中心）</p>
 
 # CNCWELD
 
@@ -42,7 +42,7 @@ To control the CNC mechanism, it is necessary to build a model of it. ROS uses t
 The supplier of the CNC mechanism provided a 3D drawing of the parts in 
 SolidWorks format in [this](SolidWorks-Drawings/FSL80X1000Y500Z200-L.STEP) file.
 
-|![A picture of RViz showing the CNC mechanism](images/CNC%20Mechanism%20visualized%20in%20RViz%20(20%20May%202022).png) |
+|![A picture of RViz showing the CNC mechanism](images/CNC%20Mechanism%202.png) |
 | :--: |
 | *CNCWELD as shown in RViz*  |
 
