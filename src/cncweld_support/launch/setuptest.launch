@@ -3,13 +3,24 @@
 <!-- cncweldD435i.xacro is the description of the cnc with the torch and the D435i camera -->
   <param 
     name="robot_description" 
-    command="$(find xacro)/xacro '$(find cncweld_support)/urdf/cncweldD435i.xacro'" />
+    command="xacro '$(find cncweld_description)/urdf/cncweld.xacro'" />
 
 <!-- We do not have a robot connected yet, so publish fake joint states -->
-  <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
+  <node name="joint_state_publisher_gui" 
+        pkg="joint_state_publisher_gui" 
+        type="joint_state_publisher_gui"
+        output="screen" />
 
 <!-- Given the published joint states, publish tf for the robot links -->
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+  <node name="robot_state_publisher" 
+        pkg="robot_state_publisher" 
+        type="robot_state_publisher" 
+        output="screen" />
+
+  <node name="rviz" 
+        pkg="rviz" 
+        type="rviz" 
+        args="-d $(find cncweld_description)/rviz/urdf.rviz" />
 
 <!-- Launch the cnc_interface 
   <include file="$(find cnc_interface)/launch/cncweld_hw.launch">
