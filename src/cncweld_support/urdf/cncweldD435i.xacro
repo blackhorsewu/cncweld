@@ -13,10 +13,6 @@
   for this project.
 -->
 
-  <!-- Do not know how to do the hardware interface with urdf yet!
-  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
-  -->
-
 <!-- There are:-
      1. The World, everything lives in it.
      2. The CNC mechanism in it.
@@ -28,20 +24,11 @@
   <link name="world" />
 
   <!-- (2) The CNC mechanism -->
-  <!-- With this structure of the xacro file, the cnc.urdf should only have 
-       the CNC mechanism together with the turn table only. The Welding
-       Torch is separately described.
+  <!-- With this structure of the xacro file, the cncweld.urdf should only have 
+       the CNC mechanism only. The Welding Torch is separately described.
   -->
   
   <xacro:include filename="$(find cncweld_description)/urdf/cncweld.xacro" />
-
-  <!-- arm Do not know how to handle this yet.
-  <xacro:arg name="kinematics_config" default="$(find ur_description)/config/ur5_default.yaml"/>
-  <xacro:ur5_robot prefix="" joint_limited="true"
-    transmission_hw_interface="$(arg transmission_hw_interface)"
-    kinematics_file="${load_yaml('$(arg kinematics_config)')}"
-  />
-  -->
 
 <!--
   The World to base link of the CNC mechanism Fixed Joint
