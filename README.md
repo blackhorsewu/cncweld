@@ -42,7 +42,7 @@ To control the CNC mechanism, it is necessary to build a model of it. ROS uses t
 The supplier of the CNC mechanism provided a 3D drawing of the parts in 
 SolidWorks format in [this](SolidWorks-Drawings/FSL80X1000Y500Z200-L.STEP) file.
 
-|![A picture of RViz showing the CNC mechanism](images/CNC%20Mechanism%202.png) |
+|![A picture of RViz showing the CNC mechanism](images/CNC%20Mechanism%203.png) |
 | :--: |
 | *CNCWELD as shown in RViz*  |
 
