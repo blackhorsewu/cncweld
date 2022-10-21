@@ -7,6 +7,7 @@ Panels:
         - /Grid1/Offset1
         - /RobotModel1/Links1/X_link1/Position1
         - /RobotModel1/Links1/world1/Position1
+        - /TF1
         - /Deepest points1
       Splitter Ratio: 0.3836805522441864
     Tree Height: 797
@@ -87,6 +88,16 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        bottom:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        bottom2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         d435i_bottom_screw_frame:
           Alpha: 1
           Show Axes: false
@@ -158,6 +169,10 @@ Visualization Manager:
           Value: true
         base_link:
           Value: true
+        bottom:
+          Value: true
+        bottom2:
+          Value: true
         d435i_bottom_screw_frame:
           Value: false
         d435i_color_frame:
@@ -190,27 +205,30 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          base_link:
-            X_link:
-              Y_link:
-                Z_link:
-                  d435i_bottom_screw_frame:
-                    d435i_link:
-                      d435i_color_frame:
-                        d435i_color_optical_frame:
-                          {}
-                      d435i_depth_frame:
-                        d435i_depth_optical_frame:
-                          {}
-                      d435i_infra1_frame:
-                        d435i_infra1_optical_frame:
-                          {}
-                      d435i_infra2_frame:
-                        d435i_infra2_optical_frame:
-                          {}
-                  torch:
-                    TorchTip:
-                      {}
+          bottom:
+            base_link:
+              X_link:
+                Y_link:
+                  Z_link:
+                    d435i_bottom_screw_frame:
+                      d435i_link:
+                        d435i_color_frame:
+                          d435i_color_optical_frame:
+                            {}
+                        d435i_depth_frame:
+                          d435i_depth_optical_frame:
+                            {}
+                        d435i_infra1_frame:
+                          d435i_infra1_optical_frame:
+                            {}
+                        d435i_infra2_frame:
+                          d435i_infra2_optical_frame:
+                            {}
+                    torch:
+                      TorchTip:
+                        {}
+          bottom2:
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -305,7 +323,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.7062277793884277
+      Distance: 1.3939683437347412
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -313,17 +331,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.4207380712032318
-        Y: 0.11349818110466003
-        Z: 0.15793900191783905
+        X: 0.5518021583557129
+        Y: 0.3299761116504669
+        Z: 0.03182581439614296
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.09980031847953796
+      Pitch: 0.4648008942604065
       Target Frame: base_link
-      Yaw: 5.555124759674072
+      Yaw: 0.890078067779541
     Saved:
       - Class: rviz/Orbit
         Distance: 1.2575963735580444
@@ -351,7 +369,7 @@ Window Geometry:
   Height: 1016
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000002200000035afc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000005fb0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000035a000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b8fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b8000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007380000003efc0100000002fb0000000800540069006d0065010000000000000738000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000005120000035a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000002200000035afc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000005fb0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000035a000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b8fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b8000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d0065010000000000000780000003bc00fffffffb0000000800540069006d006501000000000000045000000000000000000000055a0000035a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -360,6 +378,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 1848
-  X: 72
+  Width: 1920
+  X: 0
   Y: 27
