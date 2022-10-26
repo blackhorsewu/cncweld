@@ -18,7 +18,7 @@
 
 <launch>
 
-<!-- 1. Display the RViz -->
+<!-- 1. Display the CNC mechanism in RViz -->
   <arg name="cncweld" />
   <param name="robot_description" 
          command="xacro $(find cncweld_description)/urdf/cncweld.xacro" />
@@ -39,7 +39,8 @@
         type="rviz" 
         args="-d $(find cncweld_description)/rviz/urdf.rviz" />
 
-<!--
+<!-- 2. Launch the D435i to display point cloud of the workpiece
+
   26 October, 2022. (Wednesday)
   The Intel Realsense D435i camera is added to be launched to show point
   clouds captured.
