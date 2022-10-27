@@ -1,18 +1,25 @@
 {
     "ros.distro": "noetic",
     "python.autoComplete.extraPaths": [
-        "/opt/ros/melodic/lib/python2.7/dist-packages"
+        "/opt/ros/noetic/lib/python3/dist-packages"
 
     ],
     "python.analysis.extraPaths": [
-        "/opt/ros/melodic/lib/python2.7/dist-packages"
+        "/opt/ros/noetic/lib/python3/dist-packages"
 
     ],
     "cmake.configureOnOpen": false,
     "cSpell.words": [
+        "asarray",
         "CNCWELD",
         "devel",
+        "Flann",
         "GRBL",
-        "Keyence"
+        "Keyence",
+        "linalg",
+        "loginfo",
+        "neighbour",
+        "neighbours",
+        "roscloud"
     ]
 }
