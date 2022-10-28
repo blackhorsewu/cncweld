@@ -26,6 +26,7 @@ import math
 
 from ctypes import * # convert float to uint32
 
+from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
 
@@ -54,6 +55,66 @@ convert_rgbFloat_to_tuple = lambda rgb_float: convert_rgbUint32_to_tuple(
 
 ## *********************************************************************** ##
 
+def convertCloudFromOpen3dToRos(open3d_cloud, frame_id="d435i_depth_optical_frame"):
+    # Set "header"
+    header = Header() # from std_msgs.msg import Header
+    header.stamp = rospy.Time.now()
+    header.frame_id = frame_id
+
+    # Set "fields" and "cloud_data"
+    points=np.asarray(open3d_cloud.points)
+    if not open3d_cloud.colors: # XYZ only
+        fields=FIELDS_XYZ
+        cloud_data=points
+    else: # XYZ + RGB
+        fields=FIELDS_XYZRGB
+        # -- Change rgb color from "three float" to "one 24-byte int"
+        # 0x00FFFFFF is white, 0x00000000 is black.
+        colors = np.floor(np.asarray(open3d_cloud.colors)*255) # nx3 matrix
+        colors = colors[:,0] * BIT_MOVE_16 +colors[:,1] * BIT_MOVE_8 + colors[:,2]  
+        cloud_data=np.c_[points, colors]
+    
+    # create ros_cloud
+    return pc2.create_cloud(header, fields, cloud_data)
+
+def convertCloudFromRosToOpen3d(ros_cloud):
+    
+    # Get cloud data from ros_cloud
+    field_names=[field.name for field in ros_cloud.fields]
+    cloud_data = list(pc2.read_points(ros_cloud, skip_nans=True, field_names = field_names))
+
+    # Check empty
+    open3d_cloud = o3d.geometry.PointCloud()
+    if len(cloud_data)==0:
+        print("Converting an empty cloud")
+        return None
+
+    # Set open3d_cloud
+    if "rgb" in field_names:
+        IDX_RGB_IN_FIELD=3 # x, y, z, rgb
+        
+        # Get xyz
+        xyz = [(x,y,z) for x,y,z,rgb in cloud_data ] # (why cannot put this line below rgb?)
+
+        # Get rgb
+        # Check whether int or float
+        if type(cloud_data[0][IDX_RGB_IN_FIELD])==float: # if float (from pcl::toROSMsg)
+            rgb = [convert_rgbFloat_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
+        else:
+            rgb = [convert_rgbUint32_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
+
+        # combine
+        open3d_cloud.points = o3d.utility.Vector3dVector(np.array(xyz))
+        open3d_cloud.colors = o3d.utility.Vector3dVector(np.array(rgb)/255.0)
+    else:
+        xyz = [(x,y,z) for x,y,z in cloud_data ] # get xyz
+        open3d_cloud.points = o3d.utility.Vector3dVector(np.array(xyz))
+
+    # return
+    return open3d_cloud
+
+## *********************************************************************** ##
+
 def callback_roscloud(ros_cloud):
     global received_ros_cloud
 
@@ -65,7 +126,7 @@ def normalize_feature(feature_value_list):
 
     return np.array(normalized_feature_value_list)
 
-# find feature value list
+# find feature value of each point of the point cloud and put them into a list
 def find_feature_value(pcd, voxel_size):
 
     # Build a KD (k-dimensional) Tree for Flann
@@ -105,14 +166,14 @@ def find_feature_value(pcd, voxel_size):
         feature_value = np.linalg.norm(
             vector - n_list[index, :] * np.dot(vector,n_list[index, :]) / np.linalg.norm(n_list[index, :]))
         feature_value_list.append(feature_value)
-        # feature_value = (255.0-n_list[index,2])/255.0
-        # feature_value_list.append(feature_value)
 
     return np.array(feature_value_list)
 
 def detect_groove_workflow(pcd):
 
     original_pcd = pcd
+
+    global delete_percentage
 
     # 1. Down sample the point cloud
     ## a. Define a bounding box for cropping
@@ -150,9 +211,16 @@ def detect_groove_workflow(pcd):
     normalized_feature_value_list = normalize_feature(feature_value_list)
 
     # 4. Delete low value points and cluster
-    delete_points = int(pc_number*delete_percentage)
+    delete_points = int(pc_number * delete_percentage)
     pcd_selected = pcd.select_down_sample(
-        np.argsort(normalized_feature_value_list[delete_points:])
+        ## np.argsort performs an indirect sort
+        ## and returns an array of indices of the same shape
+        ## that index data along the sorting axis
+        ## in ascending order by default. So the smaller value first
+        ## and the largest value at the end
+        np.argsort(normalized_feature_value_list)[delete_points:]
+        ## therefore this is a list of indices of the point cloud
+        ## with the top 5 percent feature value
     )
 
     groove = cluster_groove_from_point_cloud(pcd_selected, voxel_size)
@@ -164,7 +232,9 @@ if __name__ == "__main__":
 
     rospy.init_node('cnc_weld', anonymous=True)
 
-    global received_ros_cloud
+    global received_ros_cloud, delete_percentage
+
+    delete_percentage = 0.95
 
     rospy.Subscriber('/d435i/depth/color/points', PointCloud2, callback_roscloud, queue_size=1)
 

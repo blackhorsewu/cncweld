@@ -10,6 +10,7 @@
     ],
     "cmake.configureOnOpen": false,
     "cSpell.words": [
+        "argsort",
         "asarray",
         "CNCWELD",
         "devel",
