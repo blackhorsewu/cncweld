@@ -13,6 +13,7 @@
         "argsort",
         "asarray",
         "CNCWELD",
+        "dbscan",
         "devel",
         "Flann",
         "GRBL",

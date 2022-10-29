@@ -169,6 +169,39 @@ def find_feature_value(pcd, voxel_size):
 
     return np.array(feature_value_list)
 
+def cluster_groove_from_point_cloud(pcd, voxel_size, verbose=False):
+
+    global neighbor
+
+    # eps - the maximum distance between neighbours in a cluster,
+    # at least min_points to form a cluster.
+    # returns an array of labels, each label is a number. 
+    # labels of the same cluster have their labels the same number.
+    # if this number is -1, that is this cluster is noise.
+    labels = np.array(pcd.cluster_dbscan(eps=0.005, min_points=3, print_progress=True))
+
+    # np.unique returns unique labels, label_counts is an array of number of that label
+    label, label_counts = np.unique(labels, return_counts=True)
+
+    # Find the largest cluster
+    ## [-1] is the last element of the array, minus means counting backward.
+    ## So, after sorting ascending the labels with the cluster with largest number of
+    ## members at the end. That is the largest cluster.
+    label_number = label[np.argsort(label_counts)[-1]]
+
+    if label_number == -1:
+        if label.shape[0]>1:
+            label_number = label[np.argsort(label_counts)[-2]]
+        elif label.shape[0]==1:
+            # sys.exit("can not find a valid groove cluster")
+            print("can not find a valid groove cluster")
+    
+    # Pick the points belong to the largest cluster
+    groove_index = np.where(labels == label_number)
+    groove = pcd.select_down_sample(groove_index[0])
+
+    return groove
+
 def detect_groove_workflow(pcd):
 
     original_pcd = pcd
@@ -236,7 +269,11 @@ if __name__ == "__main__":
 
     delete_percentage = 0.95
 
+    # Setup subscriber
     rospy.Subscriber('/d435i/depth/color/points', PointCloud2, callback_roscloud, queue_size=1)
+
+    # Setup publisher
+    pub_transformed = rospy.Publisher("transformed", PointCloud2, queue_size=1)
 
     while not rospy.is_shutdown():
 
