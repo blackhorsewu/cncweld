@@ -240,11 +240,15 @@ def detect_groove_workflow(pcd):
     pcd.orient_normals_towards_camera_location(camera_location = [0., 0., 0.])
 
     # 3. Use different geometry features to find groove
-    feature_value_list = find_feature_value()
+    feature_value_list = find_feature_value(pcd, voxel_size)
     normalized_feature_value_list = normalize_feature(feature_value_list)
 
     # 4. Delete low value points and cluster
     delete_points = int(pc_number * delete_percentage)
+
+    rviz_cloud = convertCloudFromOpen3dToRos(pcd)
+    pub_pc.publish(rviz_cloud)
+
     pcd_selected = pcd.select_down_sample(
         ## np.argsort performs an indirect sort
         ## and returns an array of indices of the same shape
@@ -269,11 +273,14 @@ if __name__ == "__main__":
 
     delete_percentage = 0.95
 
+    received_ros_cloud = None
+
     # Setup subscriber
     rospy.Subscriber('/d435i/depth/color/points', PointCloud2, callback_roscloud, queue_size=1)
 
     # Setup publisher
     pub_transformed = rospy.Publisher("transformed", PointCloud2, queue_size=1)
+    pub_pc = rospy.Publisher("downsampled_points", PointCloud2, queue_size=1)
 
     while not rospy.is_shutdown():
 

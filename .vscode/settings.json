@@ -1,11 +1,13 @@
 {
     "ros.distro": "noetic",
     "python.autoComplete.extraPaths": [
-        "/opt/ros/noetic/lib/python3/dist-packages"
+        "/opt/ros/noetic/lib/python3/dist-packages",
+        "/home/victor/.local/lib/python3.8/site-packages"
 
     ],
     "python.analysis.extraPaths": [
-        "/opt/ros/noetic/lib/python3/dist-packages"
+        "/opt/ros/noetic/lib/python3/dist-packages",
+        "/home/victor/.local/lib/python3.8/site-packages"
 
     ],
     "cmake.configureOnOpen": false,
@@ -15,6 +17,7 @@
         "CNCWELD",
         "dbscan",
         "devel",
+        "downsampled",
         "Flann",
         "GRBL",
         "Keyence",
@@ -23,6 +26,9 @@
         "nans",
         "neighbour",
         "neighbours",
-        "roscloud"
+        "roscloud",
+        "rospy",
+        "rviz",
+        "voxel"
     ]
 }
