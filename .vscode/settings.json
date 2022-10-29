@@ -20,6 +20,7 @@
         "Keyence",
         "linalg",
         "loginfo",
+        "nans",
         "neighbour",
         "neighbours",
         "roscloud"
