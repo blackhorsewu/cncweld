@@ -64,14 +64,18 @@ def convertCloudFromOpen3dToRos(open3d_cloud, frame_id="d435i_depth_optical_fram
     # Set "fields" and "cloud_data"
     points=np.asarray(open3d_cloud.points)
     if not open3d_cloud.colors: # XYZ only
+        print("\n **** Here 1 ****")
         fields=FIELDS_XYZ
         cloud_data=points
     else: # XYZ + RGB
+        print("\n **** Here 2 ****")
         fields=FIELDS_XYZRGB
         # -- Change rgb color from "three float" to "one 24-byte int"
         # 0x00FFFFFF is white, 0x00000000 is black.
         colors = np.floor(np.asarray(open3d_cloud.colors)*255) # nx3 matrix
-        colors = colors[:,0] * BIT_MOVE_16 +colors[:,1] * BIT_MOVE_8 + colors[:,2]  
+        colors = colors[:,0] * BIT_MOVE_16 +colors[:,1] * BIT_MOVE_8 + colors[:,2]
+        print("\n")
+        print(colors)
         cloud_data=np.c_[points, colors]
     
     # create ros_cloud
@@ -218,8 +222,16 @@ def detect_groove_workflow(pcd):
     ## b. Define voxel size
     voxel_size = 0.001 # 1mm cube for each voxel
 
+    print("\n ************* Before cropping ************* ")
+    rviz_cloud = convertCloudFromOpen3dToRos(pcd)
+    pub_capture.publish(rviz_cloud)
+
     pcd = pcd.voxel_down_sample(voxel_size = voxel_size)
     pcd = pcd.crop(bbox)
+
+    print("\n ************* After cropping ************* ")
+    rviz_cloud = convertCloudFromOpen3dToRos(pcd)
+    pub_capture.publish(rviz_cloud)
 
     ### it was remove_none_finite_points in Open3D version 0.8.0... but
     ### it is  remove_non_finite_points  in Open3D version 0.15.1...
@@ -240,6 +252,9 @@ def detect_groove_workflow(pcd):
     pcd.orient_normals_towards_camera_location(camera_location = [0., 0., 0.])
 
     # 3. Use different geometry features to find groove
+    rviz_cloud = convertCloudFromOpen3dToRos(pcd)
+    pub_transformed.publish(rviz_cloud)
+
     feature_value_list = find_feature_value(pcd, voxel_size)
     normalized_feature_value_list = normalize_feature(feature_value_list)
 
@@ -279,6 +294,7 @@ if __name__ == "__main__":
     rospy.Subscriber('/d435i/depth/color/points', PointCloud2, callback_roscloud, queue_size=1)
 
     # Setup publisher
+    pub_capture = rospy.Publisher("capture", PointCloud2, queue_size=1)
     pub_transformed = rospy.Publisher("transformed", PointCloud2, queue_size=1)
     pub_pc = rospy.Publisher("downsampled_points", PointCloud2, queue_size=1)
 
@@ -287,6 +303,11 @@ if __name__ == "__main__":
         if not received_ros_cloud is None:
             print("\n ************* Start groove detection *************")
             received_open3d_cloud = convertCloudFromRosToOpen3d(received_ros_cloud)
+
+            print("\n ************* Before anything ************* ")
+            rviz_cloud = convertCloudFromOpen3dToRos(received_open3d_cloud)
+            pub_capture.publish(rviz_cloud)
+
             detect_groove_workflow(received_open3d_cloud)
 
 
