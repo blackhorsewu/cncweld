@@ -71,3 +71,4 @@ A [video](videos/CNC%20Scanning%2022%20June%202022-1.mp4) showing how a welding 
 is scanned by the laser scanner.
 
 
+https://github.com/SeungBack/open3d-ros-helper/issues/6
