@@ -30,6 +30,8 @@ from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
 
+from open3d_ros_helper import open3d_ros_helper as orh
+
 ## *********************************************************************** ##
 
 # The data structure of each point in ros PointCloud2: 16 bits = x + y + z + rgb
@@ -223,14 +225,14 @@ def detect_groove_workflow(pcd):
     voxel_size = 0.001 # 1mm cube for each voxel
 
     print("\n ************* Before cropping ************* ")
-    rviz_cloud = convertCloudFromOpen3dToRos(pcd)
+    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
     pub_capture.publish(rviz_cloud)
 
     pcd = pcd.voxel_down_sample(voxel_size = voxel_size)
     pcd = pcd.crop(bbox)
 
     print("\n ************* After cropping ************* ")
-    rviz_cloud = convertCloudFromOpen3dToRos(pcd)
+    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
     pub_capture.publish(rviz_cloud)
 
     ### it was remove_none_finite_points in Open3D version 0.8.0... but
@@ -252,7 +254,7 @@ def detect_groove_workflow(pcd):
     pcd.orient_normals_towards_camera_location(camera_location = [0., 0., 0.])
 
     # 3. Use different geometry features to find groove
-    rviz_cloud = convertCloudFromOpen3dToRos(pcd)
+    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
     pub_transformed.publish(rviz_cloud)
 
     feature_value_list = find_feature_value(pcd, voxel_size)
@@ -261,7 +263,7 @@ def detect_groove_workflow(pcd):
     # 4. Delete low value points and cluster
     delete_points = int(pc_number * delete_percentage)
 
-    rviz_cloud = convertCloudFromOpen3dToRos(pcd)
+    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
     pub_pc.publish(rviz_cloud)
 
     pcd_selected = pcd.select_down_sample(
@@ -277,7 +279,7 @@ def detect_groove_workflow(pcd):
 
     groove = cluster_groove_from_point_cloud(pcd_selected, voxel_size)
 
-    rviz_cloud = convertCloudFromOpen3dToRos(groove)
+    rviz_cloud = orh.o3dpc_to_rospc(groove, frame_id="d435i_depth_optical_frame")
     pub_transformed.publish(rviz_cloud)
 
 if __name__ == "__main__":
@@ -305,7 +307,7 @@ if __name__ == "__main__":
             received_open3d_cloud = convertCloudFromRosToOpen3d(received_ros_cloud)
 
             print("\n ************* Before anything ************* ")
-            rviz_cloud = convertCloudFromOpen3dToRos(received_open3d_cloud)
+            rviz_cloud = orh.o3dpc_to_rospc(received_open3d_cloud, frame_id="d435i_depth_optical_frame")
             pub_capture.publish(rviz_cloud)
 
             detect_groove_workflow(received_open3d_cloud)

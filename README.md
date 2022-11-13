@@ -57,6 +57,35 @@ GRBL is one of the very popular *firmware* running on *Arduino* *UNO* or *Mega 2
 
 CNCWELD uses GRBL to drive its CNC mechanism.
 
+#### Install Arduino IDE
+
+To install the Arduino IDE in Ubuntu 20.04, just do  
+`sudo apt-get install arduino`  
+
+#### Download GRBL for Arduino Mega 2560
+
+Download [this](https://github.com/gnea/grbl-Mega) particular version of GRBL, Download ZIP.
+
+Then unzip this file. 
+
+#### Flash (install) GRBL onto Arduino Mega 2560
+
+In the Arduino IDE, click Tools > Board > Arduino Mega 2560.
+
+Sketch > Import Library ... > Add Library > then choose the downloaded GRBL file.
+
+Then, Sketch > Import Library > under contributed choose grbl.
+
+Then, Sketch > Verify/Compile.
+
+Then, File > Upload.
+
+#### Check GRBL is uploaded onto Arduino Mega 2560
+
+Tools > Serial Monitor.
+
+Input `$$` to the Monitor.
+
 Pictures of the stepper motors, drivers, lead screws, limit switches and the Arduino should be inserted here.
 
 |![Pinout](images/grbl-mega-5X%20pinout.jpeg)|
