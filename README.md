@@ -55,20 +55,20 @@ Usually, there are at least *straight* and *bended* torches. When they are used,
 
 GRBL is one of the very popular *firmware* running on *Arduino* *UNO* or *Mega 2650* for driving CNC Devices, especially hobbyist 3D printers.
 
-CNCWELD uses GRBL to drive its CNC mechanism.
+CNCWELD uses GRBL to drive its CNC mechanism.   
 
-#### Install Arduino IDE
+### 2.1 Install Arduino IDE
 
 To install the Arduino IDE in Ubuntu 20.04, just do  
 `sudo apt-get install arduino`  
 
-#### Download GRBL for Arduino Mega 2560
+### 2.2 Download GRBL for Arduino Mega 2560
 
 Download [this](https://github.com/gnea/grbl-Mega) particular version of GRBL, Download ZIP.
 
 Then unzip this file. 
 
-#### Flash (install) GRBL onto Arduino Mega 2560
+### 2.3 Flash (install) GRBL onto Arduino Mega 2560
 
 In the Arduino IDE, click Tools > Board > Arduino Mega 2560.
 
@@ -80,11 +80,23 @@ Then, Sketch > Verify/Compile.
 
 Then, File > Upload.
 
-#### Check GRBL is uploaded onto Arduino Mega 2560
+### 2.4 Check GRBL is uploaded onto Arduino Mega 2560
 
 Tools > Serial Monitor.
 
 Input `$$` to the Monitor.
+
+### 2.5 Wiring of Limit Switches   
+
+[This](https://github.com/gnea/grbl/wiki/Wiring-Limit-Switches) web page describes how to connect the **limit switches** to Arduino.
+
+The Limit Switches used are NO (Normal Open) proximity switches. 
+It has 3 wires output,   
+Brown (positive power),   
+Black (Normal Open),    
+Blue (negative power or common or ground).   
+
+The ground (GND) should be connected to Pin A16 (after A15).
 
 Pictures of the stepper motors, drivers, lead screws, limit switches and the Arduino should be inserted here.
 
@@ -99,5 +111,8 @@ The *Enable Coolant* pin 8 (`M8` and `M9`) are used to switch on and off the las
 A [video](videos/CNC%20Scanning%2022%20June%202022-1.mp4) showing how a welding groove
 is scanned by the laser scanner.
 
+### 3. Universal G-Code Sender (UGS)
+
+The UGS is downloaded from [here](https://winder.github.io/ugs_website/download/). 
 
 https://github.com/SeungBack/open3d-ros-helper/issues/6
