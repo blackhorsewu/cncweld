@@ -96,7 +96,31 @@ Brown (positive power),
 Black (Normal Open),    
 Blue (negative power or common or ground).   
 
+**Pay special attention to the power used is 12 to 24V not 5V**.
+
 The ground (GND) should be connected to Pin A16 (after A15).
+
+### 2.6 Wiring of Encoders
+
+The stepper motors are equipped with rotary encoders. They are for position feedback to the motor drivers. There are 3 pairs (6) of wires. They should be connected as:   
+- EA+ (Black) and EA- (Blue)  
+- EB+ (Yellow) and EB- (Green)
+- VCC (Red) and GND (White)
+
+### 2.7 Check all the wiring before switching on the first time
+
+1. Check the Power connections to the motors:   
+- X left, X right, 
+- Y axis, and  
+- Z axis and the break
+2. Check the Encoders:
+- X left, X right,
+- Y axis, and
+- Z axis
+3. Check the Limit Switches:   
+- X lower limit, and upper limit,
+- Y lower limit, and upper limit,
+- Z lower limit, and upper limit.
 
 Pictures of the stepper motors, drivers, lead screws, limit switches and the Arduino should be inserted here.
 
