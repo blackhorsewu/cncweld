@@ -24,102 +24,12 @@ import open3d as o3d
 import rospy
 import math
 
-from ctypes import * # convert float to uint32
-
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
 
+# This is for conversion from Open3d point cloud to ROS point cloud
 from open3d_ros_helper import open3d_ros_helper as orh
-
-## *********************************************************************** ##
-
-# The data structure of each point in ros PointCloud2: 16 bits = x + y + z + rgb
-# requires sensor_msgs.msg / PointCloud2, PointField
-FIELDS_XYZ = [
-    PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
-    PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
-    PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
-]
-FIELDS_XYZRGB = FIELDS_XYZ + \
-    [PointField(name='rgb', offset=12, datatype=PointField.UINT32, count=1)]
-
-# Bit operations
-# requires * of ctypes
-BIT_MOVE_16 = 2**16
-BIT_MOVE_8 = 2**8
-convert_rgbUint32_to_tuple = lambda rgb_uint32: (
-    (rgb_uint32 & 0x00ff0000)>>16, (rgb_uint32 & 0x0000ff00)>>8, (rgb_uint32 & 0x000000ff)
-)
-convert_rgbFloat_to_tuple = lambda rgb_float: convert_rgbUint32_to_tuple(
-    int(cast(pointer(c_float(rgb_float)), POINTER(c_uint32)).contents.value)
-)
-
-## *********************************************************************** ##
-
-def convertCloudFromOpen3dToRos(open3d_cloud, frame_id="d435i_depth_optical_frame"):
-    # Set "header"
-    header = Header() # from std_msgs.msg import Header
-    header.stamp = rospy.Time.now()
-    header.frame_id = frame_id
-
-    # Set "fields" and "cloud_data"
-    points=np.asarray(open3d_cloud.points)
-    if not open3d_cloud.colors: # XYZ only
-        print("\n **** Here 1 ****")
-        fields=FIELDS_XYZ
-        cloud_data=points
-    else: # XYZ + RGB
-        print("\n **** Here 2 ****")
-        fields=FIELDS_XYZRGB
-        # -- Change rgb color from "three float" to "one 24-byte int"
-        # 0x00FFFFFF is white, 0x00000000 is black.
-        colors = np.floor(np.asarray(open3d_cloud.colors)*255) # nx3 matrix
-        colors = colors[:,0] * BIT_MOVE_16 +colors[:,1] * BIT_MOVE_8 + colors[:,2]
-        print("\n")
-        print(colors)
-        cloud_data=np.c_[points, colors]
-    
-    # create ros_cloud
-    return pc2.create_cloud(header, fields, cloud_data)
-
-def convertCloudFromRosToOpen3d(ros_cloud):
-    
-    # Get cloud data from ros_cloud
-    field_names=[field.name for field in ros_cloud.fields]
-    cloud_data = list(pc2.read_points(ros_cloud, skip_nans=True, field_names = field_names))
-
-    # Check empty
-    open3d_cloud = o3d.geometry.PointCloud()
-    if len(cloud_data)==0:
-        print("Converting an empty cloud")
-        return None
-
-    # Set open3d_cloud
-    if "rgb" in field_names:
-        IDX_RGB_IN_FIELD=3 # x, y, z, rgb
-        
-        # Get xyz
-        xyz = [(x,y,z) for x,y,z,rgb in cloud_data ] # (why cannot put this line below rgb?)
-
-        # Get rgb
-        # Check whether int or float
-        if type(cloud_data[0][IDX_RGB_IN_FIELD])==float: # if float (from pcl::toROSMsg)
-            rgb = [convert_rgbFloat_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
-        else:
-            rgb = [convert_rgbUint32_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
-
-        # combine
-        open3d_cloud.points = o3d.utility.Vector3dVector(np.array(xyz))
-        open3d_cloud.colors = o3d.utility.Vector3dVector(np.array(rgb)/255.0)
-    else:
-        xyz = [(x,y,z) for x,y,z in cloud_data ] # get xyz
-        open3d_cloud.points = o3d.utility.Vector3dVector(np.array(xyz))
-
-    # return
-    return open3d_cloud
-
-## *********************************************************************** ##
 
 def callback_roscloud(ros_cloud):
     global received_ros_cloud
@@ -204,7 +114,8 @@ def cluster_groove_from_point_cloud(pcd, voxel_size, verbose=False):
     
     # Pick the points belong to the largest cluster
     groove_index = np.where(labels == label_number)
-    groove = pcd.select_down_sample(groove_index[0])
+#    groove = pcd.select_down_sample(groove_index[0])
+    groove = pcd.select_by_index(groove_index[0])
 
     return groove
 
@@ -266,7 +177,8 @@ def detect_groove_workflow(pcd):
     rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
     pub_pc.publish(rviz_cloud)
 
-    pcd_selected = pcd.select_down_sample(
+#    pcd_selected = pcd.select_down_sample(
+    pcd_selected = pcd.select_by_index(
         ## np.argsort performs an indirect sort
         ## and returns an array of indices of the same shape
         ## that index data along the sorting axis
@@ -304,7 +216,7 @@ if __name__ == "__main__":
 
         if not received_ros_cloud is None:
             print("\n ************* Start groove detection *************")
-            received_open3d_cloud = convertCloudFromRosToOpen3d(received_ros_cloud)
+            received_open3d_cloud = orh.rospc_to_o3dpc(received_ros_cloud)
 
             print("\n ************* Before anything ************* ")
             rviz_cloud = orh.o3dpc_to_rospc(received_open3d_cloud, frame_id="d435i_depth_optical_frame")

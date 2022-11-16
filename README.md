@@ -139,4 +139,24 @@ is scanned by the laser scanner.
 
 The UGS is downloaded from [here](https://winder.github.io/ugs_website/download/). 
 
-https://github.com/SeungBack/open3d-ros-helper/issues/6
+### 4. CNCWeld Core
+
+#### 4.1 Open3d is used with ROS together. 
+
+Because both Open3d and ROS are used in CNCWeld, the two platforms use different formats 
+for their Point Clouds. Therefore there is a need to convert Point Clouds between the 2 
+systems. First there was some conversion routines, Jeffery Zhou used. However, that only 
+worked in the very early version of Open3d with python 2.7. On Ubuntu 20.04 and ROS Noetic 
+only python3 is supported and the newer versions of Open3d also requires python3. That 
+made those conversion routines not workable.   
+
+Recently, there is a python library, open3d-ros-helper, that provides the conversion 
+routines and works with python3, new versions of Open3d and ROS Noetic.
+[This](https://github.com/SeungBack/open3d-ros-helper/issues/6) explained it.
+
+#### 4.2 select_down_sample changed to select_by_index
+
+In the original routine from Jeffery Zhou, he used `select_down_sample` form Open3d. 
+When I tried it failed and complaint that there is no such attribute as 
+`select_down_sample`. Then it is found that newer versions of Open3d has changed this 
+function to `select_by_index`. 
