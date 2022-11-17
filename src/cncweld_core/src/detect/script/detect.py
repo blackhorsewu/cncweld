@@ -165,8 +165,8 @@ def detect_groove_workflow(pcd):
     pcd.orient_normals_towards_camera_location(camera_location = [0., 0., 0.])
 
     # 3. Use different geometry features to find groove
-    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
-    pub_transformed.publish(rviz_cloud)
+#    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
+#    pub_transformed.publish(rviz_cloud)
 
     feature_value_list = find_feature_value(pcd, voxel_size)
     normalized_feature_value_list = normalize_feature(feature_value_list)
@@ -174,8 +174,9 @@ def detect_groove_workflow(pcd):
     # 4. Delete low value points and cluster
     delete_points = int(pc_number * delete_percentage)
 
-    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
-    pub_pc.publish(rviz_cloud)
+#    print("\n ************* Feature Points ************* ")
+#    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
+#    pub_pc.publish(rviz_cloud)
 
 #    pcd_selected = pcd.select_down_sample(
     pcd_selected = pcd.select_by_index(
@@ -191,6 +192,7 @@ def detect_groove_workflow(pcd):
 
     groove = cluster_groove_from_point_cloud(pcd_selected, voxel_size)
 
+    print("\n ************* Groove ************* ")
     rviz_cloud = orh.o3dpc_to_rospc(groove, frame_id="d435i_depth_optical_frame")
     pub_transformed.publish(rviz_cloud)
 
