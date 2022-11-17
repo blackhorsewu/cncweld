@@ -8,13 +8,20 @@
   Author: Victor W H Wu
   Date: 27 October, 2022.
 
+  Updated: 14 November, 2022.
+  To import Open3d ros helper for open3d and ros point cloud conversions.
+  The original conversion does not work anymore in ROS Noetic.
+
+  Updated: 16 November, 2022.
+  The function select_down_sample was replaced by select_by_index in Open3d
   This script tries to detect groove in the workpiece.
 
   It requires:
   rospy, 
   numpy, 
   open3d, 
-  math
+  math,
+  open3d_ros_helper
 
 '''
 
@@ -89,7 +96,7 @@ def cluster_groove_from_point_cloud(pcd, voxel_size, verbose=False):
 
     global neighbor
 
-    # eps - the maximum distance between neighbours in a cluster,
+    # eps - the maximum distance between neighbours in a cluster, originally 0.005,
     # at least min_points to form a cluster.
     # returns an array of labels, each label is a number. 
     # labels of the same cluster have their labels the same number.
@@ -128,16 +135,16 @@ def detect_groove_workflow(pcd):
     # 1. Down sample the point cloud
     ## a. Define a bounding box for cropping
     bbox = o3d.geometry.AxisAlignedBoundingBox(
-        min_bound = (-0.5, -0.5, 0), # x right, y down, z forward; for the camera
-        max_bound = (0.5, 0.5, 0.5)  # 1m x 1m plane with 0.5m depth
+        min_bound = (-0.05, -0.5, 0), # x right, y down, z forward; for the camera
+        max_bound = (0.1, 0.05, 0.5)  # 50mm x 50mm plane with 0.5m depth
     )
 
     ## b. Define voxel size
     voxel_size = 0.001 # 1mm cube for each voxel
 
-    print("\n ************* Before cropping ************* ")
-    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
-    pub_capture.publish(rviz_cloud)
+#    print("\n ************* Before cropping ************* ")
+#    rviz_cloud = orh.o3dpc_to_rospc(pcd, frame_id="d435i_depth_optical_frame")
+#    pub_capture.publish(rviz_cloud)
 
     pcd = pcd.voxel_down_sample(voxel_size = voxel_size)
     pcd = pcd.crop(bbox)
@@ -190,6 +197,8 @@ def detect_groove_workflow(pcd):
         ## with the top 5 percent feature value
     )
 
+    rviz_cloud = orh.o3dpc_to_rospc(pcd_selected, frame_id="d435i_depth_optical_frame")
+    pub_selected.publish(rviz_cloud)
     groove = cluster_groove_from_point_cloud(pcd_selected, voxel_size)
 
     print("\n ************* Groove ************* ")
@@ -211,6 +220,7 @@ if __name__ == "__main__":
 
     # Setup publisher
     pub_capture = rospy.Publisher("capture", PointCloud2, queue_size=1)
+    pub_selected = rospy.Publisher("selected", PointCloud2, queue_size=1)
     pub_transformed = rospy.Publisher("transformed", PointCloud2, queue_size=1)
     pub_pc = rospy.Publisher("downsampled_points", PointCloud2, queue_size=1)
 
@@ -222,7 +232,7 @@ if __name__ == "__main__":
 
             print("\n ************* Before anything ************* ")
             rviz_cloud = orh.o3dpc_to_rospc(received_open3d_cloud, frame_id="d435i_depth_optical_frame")
-            pub_capture.publish(rviz_cloud)
+#            pub_capture.publish(rviz_cloud)
 
             detect_groove_workflow(received_open3d_cloud)
 
