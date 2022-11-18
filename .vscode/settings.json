@@ -27,8 +27,10 @@
         "neighbour",
         "neighbours",
         "roscloud",
+        "rospc",
         "rospy",
         "rviz",
-        "voxel"
+        "voxel",
+        "Zhou"
     ]
 }

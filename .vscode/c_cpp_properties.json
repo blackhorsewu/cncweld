@@ -7,9 +7,9 @@
             },
             "includePath": [
                 "/home/victor/cncweld/devel/include/**",
-                "/opt/ros/melodic/include/**",
+                "/opt/ros/noetic/include/**",
                 "/usr/include/**",
-                "/opt/ros/melodic/include",
+                "/opt/ros/noetic/include",
                 "${workspaceFolder}/src/keyence_experimental/keyence_library/include",
                 "${workspaceFolder}/src/cncweld_core/include",
                 "${workspaceFolder}/src/cncweld_core/include",
