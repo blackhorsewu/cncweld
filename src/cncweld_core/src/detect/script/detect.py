@@ -35,6 +35,9 @@ from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
 
+from scipy import interpolate
+import scipy.spatial as spatial
+
 # This is for conversion from Open3d point cloud to ROS point cloud
 from open3d_ros_helper import open3d_ros_helper as orh
 
@@ -135,6 +138,163 @@ def cluster_groove_from_point_cloud(pcd, voxel_size, verbose=False):
 
     return groove1+groove2+groove3
 
+def thin_line(points, point_cloud_thinckness=0.015, iterations=1, sample_points=0):
+
+    if sample_points != 0:
+        points = points[:sample_points]
+
+    # Sort points into KDTree for nearest neighbours computations later
+    point_tree = spatial.cKDTree(points)
+
+    # Initially, the array for transformed points is empty
+    new_points = []
+    
+    # Initially, the array for regression lines corresponding ^^ points is empty
+    regression_lines = []
+
+    for point in point_tree.data:
+
+        # Get list of points within specified radius {point_cloud_thickness}
+        points_in_radius = point_tree.data[point_tree.query_ball_point(point, point_cloud_thinckness)]
+
+        # Get mean of points within radius
+        data_mean = points_in_radius.mean(axis=0)
+
+        # Calculate 3D regression line/principal component in point form with 2 coordinates
+        uu, dd, vv = np.linalg.svd(points_in_radius - data_mean)
+        linepts = vv[0] * np.mgrid[-1:1:2j][:, np.newaxis]
+        linepts += data_mean
+        regression_lines.append(list(linepts))
+
+        # Project original point onto 3D regression line
+        ap = point - linepts[0]
+        ab = linepts[1] - linepts[0]
+        point_moved = linepts[0] + np.dot(ap, ab) / np.dot(ab, ab) * ab
+        
+        new_points.append(list(point_moved))
+
+    return np.array(new_points), regression_lines
+
+def sort_points(points, regression_lines, sorted_point_distance=0.01):
+
+    # Index of point to be sorted
+    index = 0
+
+    # sorted points array for left and right of initial point to be sorted
+    sort_points_left = [points[index]]
+    sort_points_right = []
+
+    # Regression line of previously sorted point
+    regression_line_prev = regression_lines[index][1] - regression_lines[index[0]]
+
+    # Sort points into KDTree for nearest neighbours computation later
+    point_tree = spatial.cKDTree(points)
+
+    # Iterative add points sequentially to the sort_points_left array
+    while 1:
+        # Calculate regression line vector, makes sure line vector is similar direction as
+        # previous regression line
+        v = regression_lines[index][1] - regression_lines[index][0]
+        if np.dot(regression_line_prev, v) / (np.linalg.norm(regression_line_prev) * np.linalg.norm(v)) < 0:
+            v = regression_lines[index][0] - regression_lines[index[1]]
+        regression_line_prev = v
+
+        # Find point {distR_point} on regression line distance {sorted_point_distance} 
+        # from  original point 
+        distR_point = points[index] + ((v / np.linalg.norm(v)) * sorted_point_distance)
+
+        # Search nearest neighbours of distR_point within radius {sorted_point_distance / 3}
+        points_in_radius = point_tree.data[point_tree.query_ball_point(distR_point, sorted_point_distance / 1.5)]
+        if len(points_in_radius) < 1:
+            break
+
+        # Neighbour of distR_point with smallest angle to regression line vector is selected
+        # as next point in order
+        nearest_point = points_in_radius[0]
+        distR_point_vector = distR_point - points[index]
+        nearest_point_vector = nearest_point - points[index]
+        for x in points_in_radius:
+            x_vector = x - points[index]
+            if vg.angle(distR_point_vector, x_vector) < vg.angle(distR_point_vector, nearest_point_vector):
+                nearest_point_vector = nearest_point - points[index]
+                nearest_point = x
+        index = np.where(points == nearest_point)[0][0]
+
+        # Add nearest point to 'sort_points_left' array
+        sort_points_left.append(nearest_point)
+
+    # Do it again but in the other direction of initial starting point
+    index = 0
+    regression_line_prev = regression_lines[index][1] - regression_lines[index][0]
+    while 1:
+        # Calculate regression line vector, makes sure line vector is similar direction as
+        # previous regression line
+        v = regression_lines[index][1] - regression_lines[index][0]
+        if np.dot(regression_line_prev, v) / (np.linalg.norm(regression_line_prev) * np.linalg.norm(v)) < 0:
+            v = regression_lines[index][0] - regression_lines[index[1]]
+        regression_line_prev = v
+
+        # Find point {distR_point} on regression line distance {sorted_point_distance} 
+        # from  original point 
+        #
+        # Now vector is SUBTRACTED instead of ADDED from the point to go in other direction
+        #               ==========            =====
+        distR_point = points[index] - ((v / np.linalg.norm(v)) * sorted_point_distance)
+
+        # Search nearest neighbours of distR_point within radius {sorted_point_distance / 3}
+        points_in_radius = point_tree.data[point_tree.query_ball_point(distR_point, sorted_point_distance / 1.5)]
+        if len(points_in_radius) < 1:
+            break
+
+        # Neighbour of distR_point with smallest angle to regression line vector is selected
+        # as next point in order
+        nearest_point = points_in_radius[0]
+        distR_point_vector = distR_point - points[index]
+        nearest_point_vector = nearest_point - points[index]
+        for x in points_in_radius:
+            x_vector = x - points[index]
+            if vg.angle(distR_point_vector, x_vector) < vg.angle(distR_point_vector, nearest_point_vector):
+                nearest_point_vector = nearest_point - points[index]
+                nearest_point = x
+        index = np.where(points == nearest_point)[0][0]
+
+        # Add nearest point to 'sort_points_left' array
+        sort_points_right.append(nearest_point)
+
+    # Combine 'sort_points_right' and 'sort_points_left'
+    sort_points_right = sort_points_right[: : -1]
+    sort_points_right.extend(sort_points_left)
+    sort_points_right = np.flip(sort_points_right, 0)
+
+    return np.array(sort_points_right)
+
+# To generate a welding path for the torch. This is only a path and should be called a trajectory!
+def generate_path(groove):
+
+    points = np.asarray(groove.points)
+
+    # Thin & sort points
+    thinned_points, regression_lines = thin_line(points)
+    sorted_points = sort_points(thinned_points, regression_lines)
+
+    x = sorted_points[:, 0]
+    y = sorted_points[:, 1]
+    z = sorted_points[:, 2]
+
+    (tck, u), fp, ier, msg = interpolate.splprep([x, y, z], s=float("inf"), full_output=1)
+
+    u_fine = np.linspace(0, 1, x.size*2)
+
+    # Evaluate points on B-spline
+    x_fine, y_fine, z_fine = interpolate.splev(u_fine, tck)
+
+    sorted_points = np.vstack((x_fine, y_fine, z_fine)).T
+
+    path_pcd = o3d.geometry.PointCloud()
+    path_pcd.points = o3d.utility.Vector3dVector(sorted_points)
+
+    return path_pcd
+
 def detect_groove_workflow(pcd):
 
     original_pcd = pcd
@@ -215,6 +375,10 @@ def detect_groove_workflow(pcd):
     # groove = groove.paint_uniform_color([1, 0, 0])
     rviz_cloud = orh.o3dpc_to_rospc(groove, frame_id="d435i_depth_optical_frame")
     pub_transformed.publish(rviz_cloud)
+
+    # 5. Generate a path from the clustered Groove
+
+    generated_path = generate_path(groove)
 
 if __name__ == "__main__":
 
