@@ -110,9 +110,11 @@ def cluster_groove_from_point_cloud(pcd, voxel_size, verbose=False):
     ## [-1] is the last element of the array, minus means counting backward.
     ## So, after sorting ascending the labels with the cluster with largest number of
     ## members at the end. That is the largest cluster.
-    label_number = label[np.argsort(label_counts)[-1]]
+    label_number1 = label[np.argsort(label_counts)[-1]]
+    label_number2 = label[np.argsort(label_counts)[-2]]
+    label_number3 = label[np.argsort(label_counts)[-3]]
 
-    if label_number == -1:
+    if label_number1 == -1:
         if label.shape[0]>1:
             label_number = label[np.argsort(label_counts)[-2]]
         elif label.shape[0]==1:
@@ -120,11 +122,18 @@ def cluster_groove_from_point_cloud(pcd, voxel_size, verbose=False):
             print("can not find a valid groove cluster")
     
     # Pick the points belong to the largest cluster
-    groove_index = np.where(labels == label_number)
+    groove_index = np.where(labels == label_number1)
 #    groove = pcd.select_down_sample(groove_index[0])
-    groove = pcd.select_by_index(groove_index[0])
+    groove1 = pcd.select_by_index(groove_index[0])
+    groove1.paint_uniform_color([1, 0, 0])
+    groove_index = np.where(labels == label_number2)
+    groove2 = pcd.select_by_index(groove_index[0])
+    groove2.paint_uniform_color([0, 1, 0])
+    groove_index = np.where(labels == label_number3)
+    groove3 = pcd.select_by_index(groove_index[0])
+    groove3.paint_uniform_color([0, 0, 1])
 
-    return groove
+    return groove1+groove2+groove3
 
 def detect_groove_workflow(pcd):
 
@@ -135,8 +144,8 @@ def detect_groove_workflow(pcd):
     # 1. Down sample the point cloud
     ## a. Define a bounding box for cropping
     bbox = o3d.geometry.AxisAlignedBoundingBox(
-        min_bound = (-0.05, -0.5, 0), # x right, y down, z forward; for the camera
-        max_bound = (0.1, 0.05, 0.5)  # 50mm x 50mm plane with 0.5m depth
+        min_bound = (-0.025, -0.5, 0), # x right, y down, z forward; for the camera
+        max_bound = (0.05, 0.05, 0.5)  # 50mm x 50mm plane with 0.5m depth
     )
 
     ## b. Define voxel size
@@ -197,11 +206,13 @@ def detect_groove_workflow(pcd):
         ## with the top 5 percent feature value
     )
 
+    # pcd_selected.paint_uniform_color([0, 1, 0])
     rviz_cloud = orh.o3dpc_to_rospc(pcd_selected, frame_id="d435i_depth_optical_frame")
     pub_selected.publish(rviz_cloud)
     groove = cluster_groove_from_point_cloud(pcd_selected, voxel_size)
 
     print("\n ************* Groove ************* ")
+    # groove = groove.paint_uniform_color([1, 0, 0])
     rviz_cloud = orh.o3dpc_to_rospc(groove, frame_id="d435i_depth_optical_frame")
     pub_transformed.publish(rviz_cloud)
 
@@ -211,7 +222,8 @@ if __name__ == "__main__":
 
     global received_ros_cloud, delete_percentage
 
-    delete_percentage = 0.95
+    # delete_percentage = 0.95 ORIGINAL VALUE
+    delete_percentage = 0.96
 
     received_ros_cloud = None
 
