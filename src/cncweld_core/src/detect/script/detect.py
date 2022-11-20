@@ -35,6 +35,7 @@ from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
 
+import vg # Vector Geometry
 from scipy import interpolate
 import scipy.spatial as spatial
 
@@ -136,7 +137,7 @@ def cluster_groove_from_point_cloud(pcd, voxel_size, verbose=False):
     groove3 = pcd.select_by_index(groove_index[0])
     groove3.paint_uniform_color([0, 0, 1])
 
-    return groove1+groove2+groove3
+    return groove1 #+groove2   #+groove3
 
 def thin_line(points, point_cloud_thinckness=0.015, iterations=1, sample_points=0):
 
@@ -185,7 +186,7 @@ def sort_points(points, regression_lines, sorted_point_distance=0.01):
     sort_points_right = []
 
     # Regression line of previously sorted point
-    regression_line_prev = regression_lines[index][1] - regression_lines[index[0]]
+    regression_line_prev = regression_lines[index][1] - regression_lines[index][0]
 
     # Sort points into KDTree for nearest neighbours computation later
     point_tree = spatial.cKDTree(points)
@@ -196,7 +197,7 @@ def sort_points(points, regression_lines, sorted_point_distance=0.01):
         # previous regression line
         v = regression_lines[index][1] - regression_lines[index][0]
         if np.dot(regression_line_prev, v) / (np.linalg.norm(regression_line_prev) * np.linalg.norm(v)) < 0:
-            v = regression_lines[index][0] - regression_lines[index[1]]
+            v = regression_lines[index][0] - regression_lines[index][1]
         regression_line_prev = v
 
         # Find point {distR_point} on regression line distance {sorted_point_distance} 
@@ -231,7 +232,7 @@ def sort_points(points, regression_lines, sorted_point_distance=0.01):
         # previous regression line
         v = regression_lines[index][1] - regression_lines[index][0]
         if np.dot(regression_line_prev, v) / (np.linalg.norm(regression_line_prev) * np.linalg.norm(v)) < 0:
-            v = regression_lines[index][0] - regression_lines[index[1]]
+            v = regression_lines[index][0] - regression_lines[index][1]
         regression_line_prev = v
 
         # Find point {distR_point} on regression line distance {sorted_point_distance} 
@@ -380,6 +381,9 @@ def detect_groove_workflow(pcd):
 
     generated_path = generate_path(groove)
 
+    rviz_cloud = orh.o3dpc_to_rospc(generated_path, frame_id="d435i_depth_optical_frame")
+    pub_path.publish(rviz_cloud)
+
 if __name__ == "__main__":
 
     rospy.init_node('cnc_weld', anonymous=True)
@@ -399,6 +403,7 @@ if __name__ == "__main__":
     pub_selected = rospy.Publisher("selected", PointCloud2, queue_size=1)
     pub_transformed = rospy.Publisher("transformed", PointCloud2, queue_size=1)
     pub_pc = rospy.Publisher("downsampled_points", PointCloud2, queue_size=1)
+    pub_path = rospy.Publisher("path", PointCloud2, queue_size=1)
 
     while not rospy.is_shutdown():
 
