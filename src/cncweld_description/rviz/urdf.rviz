@@ -7,8 +7,10 @@ Panels:
         - /Grid1/Offset1
         - /RobotModel1/Links1/X_link1/Position1
         - /RobotModel1/Links1/world1/Position1
+        - /Captured1
+        - /Path1
       Splitter Ratio: 0.3836805522441864
-    Tree Height: 781
+    Tree Height: 816
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -153,48 +155,10 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        TorchTip:
-          Value: true
-        X_link:
-          Value: true
-        Y_link:
-          Value: true
-        Z_link:
-          Value: true
-        base_link:
-          Value: true
-        bottom:
-          Value: true
-        bottom2:
-          Value: true
-        d435i_bottom_screw_frame:
-          Value: false
-        d435i_color_frame:
-          Value: false
-        d435i_color_optical_frame:
-          Value: false
-        d435i_depth_frame:
-          Value: true
-        d435i_depth_optical_frame:
-          Value: false
-        d435i_infra1_frame:
-          Value: false
-        d435i_infra1_optical_frame:
-          Value: false
-        d435i_infra2_frame:
-          Value: false
-        d435i_infra2_optical_frame:
-          Value: false
-        d435i_link:
-          Value: false
-        torch:
-          Value: true
-        world:
-          Value: true
       Marker Alpha: 1
       Marker Scale: 0.30000001192092896
       Name: TF
@@ -202,33 +166,9 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          bottom:
-            base_link:
-              X_link:
-                Y_link:
-                  Z_link:
-                    d435i_bottom_screw_frame:
-                      d435i_link:
-                        d435i_color_frame:
-                          d435i_color_optical_frame:
-                            {}
-                        d435i_depth_frame:
-                          d435i_depth_optical_frame:
-                            {}
-                        d435i_infra1_frame:
-                          d435i_infra1_optical_frame:
-                            {}
-                        d435i_infra2_frame:
-                          d435i_infra2_optical_frame:
-                            {}
-                    torch:
-                      TorchTip:
-                        {}
-          bottom2:
-            {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -305,7 +245,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -313,14 +253,14 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 3
+      Size (Pixels): 4
       Size (m): 0.009999999776482582
       Style: Points
       Topic: /capture
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -350,7 +290,7 @@ Visualization Manager:
       Use rainbow: true
       Value: false
     - Class: rviz/Camera
-      Enabled: true
+      Enabled: false
       Image Rendering: background and overlay
       Image Topic: /d435i/color/image_raw
       Name: Camera
@@ -358,7 +298,7 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
-      Value: true
+      Value: false
       Visibility:
         Captured: false
         Cumulated lines: true
@@ -366,6 +306,7 @@ Visualization Manager:
         Down sampled: false
         Front line: true
         Grid: true
+        Path: true
         Raw: false
         Raw Point Cloud: false
         RobotModel: true
@@ -486,6 +427,34 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: Path
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 6
+      Size (m): 0.009999999776482582
+      Style: Points
+      Topic: /path
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -514,7 +483,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.8115805387496948
+      Distance: 0.37003788352012634
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -522,17 +491,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.24337685108184814
-        Y: 0.22041933238506317
-        Z: -0.03902818262577057
+        X: 0.4600047469139099
+        Y: 0.2184200882911682
+        Z: -0.09141161292791367
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8247971534729004
+      Pitch: 1.1847968101501465
       Target Frame: base_link
-      Yaw: 0.9250956177711487
+      Yaw: 3.025099039077759
     Saved:
       - Class: rviz/Orbit
         Distance: 1.2575963735580444
@@ -558,11 +527,11 @@ Window Geometry:
   Camera:
     collapsed: false
   Displays:
-    collapsed: true
-  Height: 1000
-  Hide Left Dock: true
+    collapsed: false
+  Height: 1035
+  Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000002200000034afc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000005fb0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000003d0000034a000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b8fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b8000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000002000005bb000000a9fc0100000002fb0000000c00430061006d006500720061030000078200000258000001b9000001e0fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005bb0000003efc0100000002fb0000000800540069006d00650100000000000005bb000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000005bb0000034a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000002200000036dfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000005fb0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000036d000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b8fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b8000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000002000005bb000000a9fc0100000002fb0000000c00430061006d006500720061020000000600000202000001b5000001e0fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005bb0000003efc0100000002fb0000000800540069006d00650100000000000005bb000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000003950000036d00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -572,5 +541,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1467
-  X: 2365
+  X: 453
   Y: 0

@@ -373,13 +373,14 @@ def detect_groove_workflow(pcd):
     groove = cluster_groove_from_point_cloud(pcd_selected, voxel_size)
 
     print("\n ************* Groove ************* ")
-    # groove = groove.paint_uniform_color([1, 0, 0])
+    # groove = groove.paint_uniform_color([0, 1, 0])
     rviz_cloud = orh.o3dpc_to_rospc(groove, frame_id="d435i_depth_optical_frame")
     pub_transformed.publish(rviz_cloud)
 
     # 5. Generate a path from the clustered Groove
 
     generated_path = generate_path(groove)
+    generated_path = generated_path.paint_uniform_color([0, 0, 1])
 
     rviz_cloud = orh.o3dpc_to_rospc(generated_path, frame_id="d435i_depth_optical_frame")
     pub_path.publish(rviz_cloud)
