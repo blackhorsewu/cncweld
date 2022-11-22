@@ -139,8 +139,8 @@ def cluster_groove_from_point_cloud(pcd, voxel_size, verbose=False):
 
     return groove1 #+groove2   #+groove3
 
-def thin_line(points, point_cloud_thinckness=0.015, iterations=1, sample_points=0):
-
+def thin_line(points, point_cloud_thinckness=0.01, iterations=1, sample_points=0):
+                    # point_cloud_thinckness=0.015
     if sample_points != 0:
         points = points[:sample_points]
 
@@ -375,7 +375,7 @@ def detect_groove_workflow(pcd):
     print("\n ************* Groove ************* ")
     # groove = groove.paint_uniform_color([1, 0, 0])
     rviz_cloud = orh.o3dpc_to_rospc(groove, frame_id="d435i_depth_optical_frame")
-    pub_transformed.publish(rviz_cloud)
+    pub_clustered.publish(rviz_cloud)
 
     # 5. Generate a path from the clustered Groove
 
@@ -401,7 +401,7 @@ if __name__ == "__main__":
     # Setup publisher
     pub_capture = rospy.Publisher("capture", PointCloud2, queue_size=1)
     pub_selected = rospy.Publisher("selected", PointCloud2, queue_size=1)
-    pub_transformed = rospy.Publisher("transformed", PointCloud2, queue_size=1)
+    pub_clustered = rospy.Publisher("clustered", PointCloud2, queue_size=1)
     pub_pc = rospy.Publisher("downsampled_points", PointCloud2, queue_size=1)
     pub_path = rospy.Publisher("path", PointCloud2, queue_size=1)
 
