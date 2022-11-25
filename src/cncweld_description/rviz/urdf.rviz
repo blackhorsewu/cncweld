@@ -5,10 +5,15 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Grid1/Offset1
+        - /RobotModel1
         - /RobotModel1/Links1/X_link1/Position1
         - /RobotModel1/Links1/world1/Position1
+<<<<<<< HEAD
         - /Captured1
         - /Path1
+=======
+        - /Raw1
+>>>>>>> 419112c24613a904318a31d7610493794dd0f162
       Splitter Ratio: 0.3836805522441864
     Tree Height: 816
   - Class: rviz/Selection
@@ -54,7 +59,7 @@ Visualization Manager:
       Plane Cell Count: 30
       Reference Frame: world
       Value: true
-    - Alpha: 1
+    - Alpha: 0
       Class: rviz/RobotModel
       Collision Enabled: false
       Enabled: true
@@ -301,6 +306,7 @@ Visualization Manager:
       Value: false
       Visibility:
         Captured: false
+        Clustered: true
         Cumulated lines: true
         Deepest points: true
         Down sampled: false
@@ -308,69 +314,11 @@ Visualization Manager:
         Grid: true
         Path: true
         Raw: false
-        Raw Point Cloud: false
         RobotModel: true
         Selected: true
         TF: false
-        Transformed: true
         Value: true
       Zoom Factor: 1
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: Raw Point Cloud
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Flat Squares
-      Topic: /d435i/depth/color/points
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: Raw
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 4
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /d435i/depth/color/points
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -387,14 +335,14 @@ Visualization Manager:
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
-      Name: Transformed
+      Name: Raw
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Points
-      Topic: /transformed
+      Topic: /d435i/depth/color/points
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -411,7 +359,35 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: Clustered
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Points
+      Topic: /clustered
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -426,6 +402,35 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: Path
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Points
+      Topic: /path
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+<<<<<<< HEAD
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -455,6 +460,9 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+=======
+      Value: false
+>>>>>>> 419112c24613a904318a31d7610493794dd0f162
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -483,7 +491,11 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
+<<<<<<< HEAD
       Distance: 0.37003788352012634
+=======
+      Distance: 0.21131297945976257
+>>>>>>> 419112c24613a904318a31d7610493794dd0f162
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -491,17 +503,29 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
+<<<<<<< HEAD
         X: 0.4600047469139099
         Y: 0.2184200882911682
         Z: -0.09141161292791367
+=======
+        X: 0.38563472032546997
+        Y: 0.06362413614988327
+        Z: 0.07810834795236588
+>>>>>>> 419112c24613a904318a31d7610493794dd0f162
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
+<<<<<<< HEAD
       Pitch: 1.1847968101501465
       Target Frame: base_link
       Yaw: 3.025099039077759
+=======
+      Pitch: 0.6047972440719604
+      Target Frame: base_link
+      Yaw: 3.1500988006591797
+>>>>>>> 419112c24613a904318a31d7610493794dd0f162
     Saved:
       - Class: rviz/Orbit
         Distance: 1.2575963735580444
@@ -528,10 +552,17 @@ Window Geometry:
     collapsed: false
   Displays:
     collapsed: false
+<<<<<<< HEAD
   Height: 1035
   Hide Left Dock: false
   Hide Right Dock: true
   QMainWindow State: 000000ff00000000fd0000000400000000000002200000036dfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000005fb0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000036d000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b8fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b8000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000002000005bb000000a9fc0100000002fb0000000c00430061006d006500720061020000000600000202000001b5000001e0fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005bb0000003efc0100000002fb0000000800540069006d00650100000000000005bb000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000003950000036d00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+=======
+  Height: 1000
+  Hide Left Dock: false
+  Hide Right Dock: true
+  QMainWindow State: 000000ff00000000fd0000000400000000000002200000034afc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000005fb0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d0000034a000000c900fffffffa000000010100000002fb0000000c00430061006d0065007200610200000003000001e5000001b8000001e0fb000000100044006900730070006c0061007900730100000000000002200000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b8fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b8000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000002000005bb000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005bb0000003efc0100000002fb0000000800540069006d00650100000000000005bb000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000003950000034a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+>>>>>>> 419112c24613a904318a31d7610493794dd0f162
   Selection:
     collapsed: false
   Time:
@@ -541,5 +572,10 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1467
+<<<<<<< HEAD
   X: 453
   Y: 0
+=======
+  X: 448
+  Y: 27
+>>>>>>> 419112c24613a904318a31d7610493794dd0f162
