@@ -20,6 +20,8 @@ Updated on 23 June, 2022.World is moved to direcly under torch.
 
 11 October 2022. for the 3rd branch.
 This is new for the Consealed Lead Screws.
+
+25 November 2022. for Demonstration with the Keyence scanner.
 -->
 
 <robot name="robot_description" xmlns:xacro="http://ros.org/wiki/xacro">
@@ -333,11 +335,39 @@ This is new for the Consealed Lead Screws.
 <!--
   The Intel RealSense RGBD camera D435i
 -->
-  <!-- Import the realsense D435i description -->
+  <!-- Import the realsense D435i description 
 
   <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
   <xacro:sensor_d435 parent="Z_link" use_nominal_extrinsics="true" name="d435i">
     <origin xyz=" 0.14515 0 -0.025" rpy="${pi} ${pi/2} ${pi}"/>
   </xacro:sensor_d435>
+-->
+
+<!--
+<link name="lj_v7200_optical_frame" />
+
+<joint name="optical_frame" type="fixed">
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <parent link="lj_v7200_optical_frame"/>
+  <child link="lj_v7200_optical_frame"/>
+</joint>
+-->
+
+<!--
+  The Z_link to keyence_optical_frame fixed Joint
+-->
+  <joint name="Z_link_lj_v7200_optical_frame" type="fixed">
+<!--
+    <origin xyz="0.1083 0.000005 -0.19027" rpy="-0.471238898038469 0.0 ${-pi/2.0}" />
+-->
+    <origin xyz="0.1083 0.000005 -0.18527" rpy="-0.471238898038469 0.0 ${-pi/2.0}" />
+    <parent
+      link="Z_link" />
+    <child
+      link="lj_v7200_optical_frame" />
+  </joint>
+
+  <xacro:include filename="$(find keyence_experimental)/urdf/lj_v7200_macro.xacro"/>
+  <xacro:lj_v7200 prefix=""/>
 
 </robot>
