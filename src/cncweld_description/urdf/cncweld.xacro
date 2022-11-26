@@ -225,7 +225,10 @@ This is new for the Consealed Lead Screws.
   <joint
     name="X_link_Y_link_joint"
     type="prismatic">
+<!--
     <origin xyz="0.095 0.064 -0.041" rpy="0.0 0.0 0.0" />
+-->
+    <origin xyz="0.095 0.064 -0.031" rpy="0.0 0.0 0.0" />
     <parent
       link="X_link" />
     <child
@@ -281,7 +284,7 @@ This is new for the Consealed Lead Screws.
 
 <!--
   The torch on the torch holder
--->
+
   <link name="torch" >
     <visual>
       <origin
@@ -305,6 +308,35 @@ This is new for the Consealed Lead Screws.
       <geometry>
         <mesh
           filename="package://cncweld_support/meshes/mere_torch.STL"
+          scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+-->
+
+  <link name="torch" >
+    <visual>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cncweld_support/meshes/scanner_holder.stl"
+          scale="0.001 0.001 0.001" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.0 0.0 0.0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://cncweld_support/meshes/scanner_holder.stl"
           scale="0.001 0.001 0.001" />
       </geometry>
     </collision>
@@ -360,7 +392,7 @@ This is new for the Consealed Lead Screws.
 <!--
     <origin xyz="0.1083 0.000005 -0.19027" rpy="-0.471238898038469 0.0 ${-pi/2.0}" />
 -->
-    <origin xyz="0.1083 0.000005 -0.18527" rpy="-0.471238898038469 0.0 ${-pi/2.0}" />
+    <origin xyz="0.10812 0.003 -0.21544" rpy="-0.471238898038469 0.0 ${-pi/2.0}" />
     <parent
       link="Z_link" />
     <child

@@ -8,11 +8,12 @@ Panels:
         - /Grid1
         - /Grid1/Offset1
         - /RobotModel1
+        - /RobotModel1/Links1
         - /TF1
         - /TF1/Frames1
         - /TF1/Tree1
       Splitter Ratio: 0.5
-    Tree Height: 564
+    Tree Height: 795
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -82,47 +83,15 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        d435i_bottom_screw_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435i_color_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435i_color_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435i_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435i_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435i_infra1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435i_infra1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435i_infra2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435i_infra2_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435i_link:
+        lj_v7200_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        lj_v7200_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         torch:
           Alpha: 1
           Show Axes: false
@@ -157,26 +126,10 @@ Visualization Manager:
           Value: false
         bottom2:
           Value: false
-        d435i_bottom_screw_frame:
-          Value: false
-        d435i_color_frame:
-          Value: false
-        d435i_color_optical_frame:
-          Value: false
-        d435i_depth_frame:
-          Value: false
-        d435i_depth_optical_frame:
-          Value: false
-        d435i_infra1_frame:
-          Value: false
-        d435i_infra1_optical_frame:
-          Value: false
-        d435i_infra2_frame:
-          Value: false
-        d435i_infra2_optical_frame:
-          Value: false
-        d435i_link:
-          Value: false
+        lj_v7200_frame:
+          Value: true
+        lj_v7200_optical_frame:
+          Value: true
         torch:
           Value: false
         world:
@@ -194,20 +147,9 @@ Visualization Manager:
               X_link:
                 Y_link:
                   Z_link:
-                    d435i_bottom_screw_frame:
-                      d435i_link:
-                        d435i_color_frame:
-                          d435i_color_optical_frame:
-                            {}
-                        d435i_depth_frame:
-                          d435i_depth_optical_frame:
-                            {}
-                        d435i_infra1_frame:
-                          d435i_infra1_optical_frame:
-                            {}
-                        d435i_infra2_frame:
-                          d435i_infra2_optical_frame:
-                            {}
+                    lj_v7200_optical_frame:
+                      lj_v7200_frame:
+                        {}
                     torch:
                       TorchTip:
                         {}
@@ -238,7 +180,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.0004100799560547
+      Distance: 1.1931549310684204
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -246,25 +188,25 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.4175316393375397
-        Y: -0.3065296411514282
-        Z: -0.07494641840457916
+        X: 0.5751461386680603
+        Y: -0.14750677347183228
+        Z: 0.10973022133111954
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5153984427452087
+      Pitch: 0.29039984941482544
       Target Frame: <Fixed Frame>
-      Yaw: 0.9603980779647827
+      Yaw: 1.0703740119934082
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: false
-  Height: 785
-  Hide Left Dock: false
+    collapsed: true
+  Height: 1016
+  Hide Left Dock: true
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd000000010000000000000156000002b7fc0200000001fb000000100044006900730070006c006100790073010000003d000002b7000000c900ffffff000003e2000002b700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
-  Width: 1342
-  X: 564
-  Y: 88
+  QMainWindow State: 000000ff00000000fd0000000100000000000001560000039efc0200000001fb000000100044006900730070006c006100790073000000003d0000039e000000c900ffffff000007800000039e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Width: 1920
+  X: 1920
+  Y: 27
