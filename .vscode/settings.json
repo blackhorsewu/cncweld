@@ -19,6 +19,7 @@
         "devel",
         "downsampled",
         "Flann",
+        "GMAW",
         "GRBL",
         "Keyence",
         "linalg",
@@ -30,6 +31,7 @@
         "neighbour",
         "neighbours",
         "newaxis",
+        "Pinout",
         "roscloud",
         "rospc",
         "rospy",
@@ -38,6 +40,7 @@
         "splev",
         "splprep",
         "thinckness",
+        "URDF",
         "voxel",
         "Zhou"
     ]
