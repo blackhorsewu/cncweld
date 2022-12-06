@@ -49,6 +49,9 @@
       file="$(find realsense2_camera)/launch/rs_camera.launch" >
     <arg name="camera" value="d435i" />
     <arg name="enable_pointcloud" value="true"/>
+<!--
+    <arg name="filters" default="hole_filling" />
+-->
   </include>
 
 </launch>
