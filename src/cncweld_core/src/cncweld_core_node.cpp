@@ -31,6 +31,10 @@
  * The deepest point of the groove will be highlighted by a marker. The markers *
  * will form the welding path.                                                  *
  *                                                                              *
+ * After the welding path for the groove is scanned successfully, a file, named *
+ * "grbl.gcode" will be generated. This file can then be read by grble to do the*
+ * actual welding.                                                              *
+ *                                                                              *
  ********************************************************************************/
 
 #include <ros/ros.h>
